@@ -46,12 +46,7 @@ sections:
           location: Singapore
           date_start: '2021-04-05'
           date_end: ''
-          description: |2-
-              Responsibilities include:
-
-              * Analysing
-              * Modelling
-              * Deploying
+          description: Responsibilities include data analysis, AI modelling and algorithm deployment.
         - title: Project Officer
           company: Nanyang Technological University
           company_url: 'https://www.ntu.edu.sg/Pages/home.aspx'
@@ -59,9 +54,7 @@ sections:
           location: Singapore
           date_start: '2015-08-22'
           date_end: '2016-01-05'
-          description:  Responsibilities include  
-  * Camera calibration of large baseline stereo cameras.
-  * Implement visual SLAM system on stereo camera robot.
+          description:  Responsibilities include camera calibration of large baseline stereo cameras and the implementation of visual SLAM system on stereo camera robot.
         - title: Assistant Researcher
           company: Shenyang Institute of Automation, Chinese Academy of Sciences (SIA)
           company_url: 'http://english.sia.cas.cn/'
@@ -69,10 +62,7 @@ sections:
           location: Shenyang, China
           date_start: '2013-07-22'
           date_end: '2015-08-15'
-          description:  Assistance Research in the State Key Laboratory of Robotics, in charge of  
-  * System simulatioin for collision detection of robot arms. In charge of algorithm part.
-   * Bird-eye-view collision detection system depoyed on robot to construct a panarama environment perception. In charge of algorithm part.
-   * Robot monitoring and controlling console system. In charge of programming using C to handle communication between robot and host machine.
+          description:  Assistance Research in the State Key Laboratory of Robotics, in charge of system simulation for collision detection of robot arms, and the development of bird-eye-view system to construct a panorama environment perception.
     design:
       columns: '2'
   # - block: accomplishments
