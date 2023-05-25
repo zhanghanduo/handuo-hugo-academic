@@ -19,9 +19,9 @@ sections:
           description: 90%
           icon: python
           icon_pack: fab
-        - name: C & C++
+        - name: C++
           description: 80%
-          icon: square-code
+          icon: robot
           icon_pack: fas
         - name: Artificial Intelligence
           description: 80%
