@@ -46,7 +46,7 @@ sections:
         - title: AI Scientist
           company: Mind Pointeye
           company_url: 'www.mindpointeye.com'
-          company_logo: mpe
+          company_logo: mpe1
           location: Singapore
           date_start: '2021-04-05'
           date_end: ''
@@ -54,7 +54,7 @@ sections:
         - title: Project Officer
           company: Nanyang Technological University
           company_url: 'https://www.ntu.edu.sg/Pages/home.aspx'
-          company_logo: ntu
+          company_logo: ntu1
           location: Singapore
           date_start: '2015-08-22'
           date_end: '2016-01-05'
@@ -62,7 +62,7 @@ sections:
         - title: Assistant Researcher
           company: Shenyang Institute of Automation, Chinese Academy of Sciences (SIA)
           company_url: 'http://english.sia.cas.cn/'
-          company_logo: sia
+          company_logo: sia1
           location: Shenyang, China
           date_start: '2013-07-22'
           date_end: '2015-08-15'
