@@ -27,10 +27,10 @@ sections:
           description: 80%
           icon: chart-line
           icon_pack: fas
-        - name: ROS
-          description: 80%
-          icon: robot
-          icon_pack: fas
+        # - name: ROS
+        #   description: 80%
+        #   icon: robot
+        #   icon_pack: fas
   - block: experience
     content:
       title: Experience
