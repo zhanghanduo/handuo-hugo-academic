@@ -21,11 +21,15 @@ sections:
           icon_pack: fab
         - name: C & C++
           description: 80%
-          icon: rectangle-code
+          icon: square-code
           icon_pack: fas
         - name: Artificial Intelligence
           description: 80%
           icon: chart-line
+          icon_pack: fas
+        - name: ROS
+          description: 80%
+          icon: robot
           icon_pack: fas
   - block: experience
     content:
