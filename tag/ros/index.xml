@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>ROS | Zhang Handuo's Site</title><link>https://zhanghanduo.github.io/tag/ros/</link><atom:link href="https://zhanghanduo.github.io/tag/ros/index.xml" rel="self" type="application/rss+xml"/><description>ROS</description><generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Thu, 03 May 2018 10:07:29 +0800</lastBuildDate><image><url>https://zhanghanduo.github.io/media/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_3.png</url><title>ROS</title><link>https://zhanghanduo.github.io/tag/ros/</link></image><item><title>CLion for catkin projects</title><link>https://zhanghanduo.github.io/post/clion/</link><pubDate>Thu, 03 May 2018 10:07:29 +0800</pubDate><guid>https://zhanghanduo.github.io/post/clion/</guid><description>&lt;h2 id="why-use-clion">Why use CLion?&lt;/h2>
+&lt;hr>
+&lt;ul>
+&lt;li>Better indexing and intelligence hints for C++ than Eclipse and QtCreator-desktop.&lt;/li>
+&lt;li>Free for students.&lt;/li>
+&lt;li>Also integrate PyCharm already.&lt;/li>
+&lt;li>Good Git integration (although I am still used to commandline git).&lt;/li>
+&lt;li>I really like the &lt;code>code inspection clang-tidy&lt;/code> function which makes the code style more modern.&lt;/li>
+&lt;/ul>
+&lt;h2 id="initial-set-up">Initial set-up&lt;/h2>
+&lt;hr>
+&lt;p>Highly recommend you to add &lt;code>source &amp;lt;CATKIN_WORKSPACE_DIR&amp;gt;/devel/setup.bash&lt;/code> to the end of &lt;code>~/.bashrc&lt;/code> or &lt;code>~/.zshrc&lt;/code> (Depends you use bash or zsh). So when you type&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="nb">echo&lt;/span> &lt;span class="nv">$ROS_PACKAGE_PATH&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>you can find both &lt;code>&amp;lt;CATKIN_WORKSPACE_DIR&amp;gt;/src&lt;/code> and &lt;code>/opt/ros/&amp;lt;ROS_DIST&amp;gt;/share&lt;/code>. So next time you open any terminal, your cmakelist can find the package of &lt;code>catkin&lt;/code>.&lt;/p>
+&lt;h3 id="method-1-launch-clion-via-terminal">Method 1: Launch CLion via terminal&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">sh &amp;lt;CLION_INSTALL_DIR&amp;gt;/bin/clion.sh
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Recommend you to make alias for this command in &lt;code>~/.bashrc&lt;/code>.&lt;/p>
+&lt;h3 id="method-2-launch-clion-via-app-icon-on-sidebar">Method 2: Launch CLion via app icon on sidebar&lt;/h3>
+&lt;p>Just edit &lt;code>/usr/share/applications/jetbrains-clion.desktop&lt;/code>. If it does not exist, open up Clion and hit &lt;code>Tools &amp;gt; Create Desktop Entry&lt;/code> first. Here I give an example and if you are using &lt;code>zsh&lt;/code>, just change &lt;code>bash&lt;/code> to &lt;code>zsh&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="o">[&lt;/span>Desktop Entry&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Version&lt;/span>&lt;span class="o">=&lt;/span>1.0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Type&lt;/span>&lt;span class="o">=&lt;/span>Application
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Name&lt;/span>&lt;span class="o">=&lt;/span>CLion
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Icon&lt;/span>&lt;span class="o">=&lt;/span>XXX/clion-2017.2.3/bin/clion.svg
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Exec&lt;/span>&lt;span class="o">=&lt;/span>bash -i -c &lt;span class="s2">&amp;#34;XXX/clion-2017.2.3/bin/clion.sh&amp;#34;&lt;/span> %f
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Comment&lt;/span>&lt;span class="o">=&lt;/span>The Drive to Develop
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Categories&lt;/span>&lt;span class="o">=&lt;/span>Development&lt;span class="p">;&lt;/span>IDE&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Terminal&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="nb">false&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">StartupWMClass&lt;/span>&lt;span class="o">=&lt;/span>jetbrains-clion
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="settings">Settings&lt;/h2>
+&lt;p>In CLion, you can set the &lt;code>Toolchain&lt;/code> dialog (including CMake, C++ compiler, gdb) so it can be consistent with your current system-level toolchain.&lt;/p>
+&lt;p>Also you can set the pass any envrionment variables and parameters to CMake in CLion by using the &lt;code>CMake&lt;/code> dialog.&lt;/p>
+&lt;table>
+&lt;tbody>
+&lt;tr>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/8dfc0acb4cc40bf7ded20489f98086d2/toolchain.png" alt="tool chain setting" width="100%">
+&lt;/td>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/c190b9f472836b6993821df80cd27af6/cmake.png" alt="Cmake setting" width="100%">
+&lt;/td>
+&lt;/tr>
+&lt;tr align="center">
+&lt;td>C++ tool chain settings&lt;/td>
+&lt;td>Cmake settings&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>CLion builds your project in &lt;code>cmake-build-debug&lt;/code> by default. If you want to change that, you could easily set:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-CMake" data-lang="CMake">&lt;span class="line">&lt;span class="cl">&lt;span class="nb">set&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">CMAKE_RUNTIME_OUTPUT_DIRECTORY&lt;/span> &lt;span class="s2">&amp;#34;my_dir&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Or change the build output directory in the &lt;code>CMake&lt;/code> dialog as well.&lt;/p>
+&lt;p>In addition, the &lt;code>Run/Debug&lt;/code> Configurations dialog in the right up corner allows you to set program execution arguments, working directory, and environment variables.&lt;/p>
+&lt;table>
+&lt;tbody>
+&lt;tr>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/a51009514844b403224fee6e25f056ea/menu_setting.png" alt="open debug &amp; run setting" width="60%">
+&lt;/td>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/843d191d2e1d8fdef1a15b6aa0b11059/debug_setting.png" alt="modify execution argument" width="100%">
+&lt;/td>
+&lt;/tr>
+&lt;tr align="center">
+&lt;td>open debug &amp; run setting&lt;/td>
+&lt;td>modify execution arguments&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>Now try to build &amp;amp; run your ROS project! I hope this could provide you with better experience on project development.&lt;/p></description></item></channel></rss>

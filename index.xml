@@ -1,0 +1,789 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Zhang Handuo's Site</title><link>https://zhanghanduo.github.io/</link><atom:link href="https://zhanghanduo.github.io/index.xml" rel="self" type="application/rss+xml"/><description>Zhang Handuo's Site</description><generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Mon, 24 Oct 2022 00:00:00 +0000</lastBuildDate><image><url>https://zhanghanduo.github.io/media/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_3.png</url><title>Zhang Handuo's Site</title><link>https://zhanghanduo.github.io/</link></image><item><title>Example Talk</title><link>https://zhanghanduo.github.io/talk/example-talk/</link><pubDate>Sat, 01 Jun 2030 13:00:00 +0000</pubDate><guid>https://zhanghanduo.github.io/talk/example-talk/</guid><description>&lt;div class="alert alert-note">
+&lt;div>
+Click on the &lt;strong>Slides&lt;/strong> button above to view the built-in slides feature.
+&lt;/div>
+&lt;/div>
+&lt;p>Slides can be added in a few ways:&lt;/p>
+&lt;ul>
+&lt;li>&lt;strong>Create&lt;/strong> slides using Wowchemy&amp;rsquo;s &lt;a href="https://wowchemy.com/docs/managing-content/#create-slides" target="_blank" rel="noopener">&lt;em>Slides&lt;/em>&lt;/a> feature and link using &lt;code>slides&lt;/code> parameter in the front matter of the talk file&lt;/li>
+&lt;li>&lt;strong>Upload&lt;/strong> an existing slide deck to &lt;code>static/&lt;/code> and link using &lt;code>url_slides&lt;/code> parameter in the front matter of the talk file&lt;/li>
+&lt;li>&lt;strong>Embed&lt;/strong> your slides (e.g. Google Slides) or presentation video on this page using &lt;a href="https://wowchemy.com/docs/writing-markdown-latex/" target="_blank" rel="noopener">shortcodes&lt;/a>.&lt;/li>
+&lt;/ul>
+&lt;p>Further event details, including &lt;a href="https://wowchemy.com/docs/writing-markdown-latex/" target="_blank" rel="noopener">page elements&lt;/a> such as image galleries, can be added to the body of this page.&lt;/p></description></item><item><title>Seq2seq Model with Attention</title><link>https://zhanghanduo.github.io/post/attention/</link><pubDate>Mon, 01 Jun 2020 12:58:12 +0800</pubDate><guid>https://zhanghanduo.github.io/post/attention/</guid><description>&lt;blockquote>
+&lt;p>Digested and reproduced from &lt;a href="https://jalammar.github.io/visualizing-neural-machine-translation-mechanics-of-seq2seq-models-with-attention/">Visualizing A Neural Machine Translation Model&lt;/a> by Jay Alammar.&lt;/p>
+&lt;/blockquote>
+&lt;details class="toc-inpage d-print-none " open>
+&lt;summary class="font-weight-bold">Table of Contents&lt;/summary>
+&lt;nav id="TableOfContents">
+&lt;ul>
+&lt;li>&lt;a href="#1-architecture-of-seq2seq">1. Architecture of Seq2seq&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#2-attention-mechanism">2. Attention Mechanism&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;/nav>
+&lt;/details>
+&lt;p>Sequence-to-sequence models are deep learning models that have achieved a lot of success in tasks like machine translation, text summarization, and image captioning. &lt;a href="https://blog.google/products/translate/found-translation-more-accurate-fluent-sentences-google-translate/" target="_blank" rel="noopener">Google Translate&lt;/a> started using such a model in production in late 2016. These models are explained in the two pioneering papers (&lt;a href="https://papers.nips.cc/paper/5346-sequence-to-sequence-learning-with-neural-networks.pdf" target="_blank" rel="noopener">Sutskever et al., 2014&lt;/a>, &lt;a href="http://emnlp2014.org/papers/pdf/EMNLP2014179.pdf" target="_blank" rel="noopener">Cho et al., 2014&lt;/a>).&lt;/p>
+&lt;p>A sequence-to-sequence model is a model that takes a sequence of items (words, letters, features of an images&amp;hellip;etc) and outputs another sequence of items.&lt;/p>
+&lt;p>In neural machine translation, a sequence is a series of words, processed one after another. The output is, likewise, a series of words:&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/seq2seq_2.mp4" type="video/mp4">
+&lt;/video>
+&lt;h2 id="1-architecture-of-seq2seq">1. Architecture of Seq2seq&lt;/h2>
+&lt;p>The model is composed of an
+&lt;mark>encoder&lt;/mark> and a
+&lt;mark>decoder&lt;/mark>. The
+&lt;mark>encoder&lt;/mark> processes each item in the input sequence and compiles the information into a vector (called the
+&lt;mark>context&lt;/mark> ). After processing the input sequence, the
+&lt;mark>encoder&lt;/mark> sends the
+&lt;mark>context&lt;/mark> over to the
+&lt;mark>decoder&lt;/mark> , which produces the output sequence item by item.&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/seq2seq_3.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>The same applies in the case of machine translation.&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/seq2seq_4.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>RNN (recurrent neural network) is shown as an illustration here to be the model of both
+&lt;mark>encoder&lt;/mark> and
+&lt;mark>decoder&lt;/mark> (Be sure to check out Luis Serrano&amp;rsquo;s &lt;a href="https://www.youtube.com/watch?v=UNmqTiOnRfg" target="_blank" rel="noopener">A friendly introduction to Recurrent Neural Networks&lt;/a> for an intro to RNNs).&lt;/p>
+&lt;figure id="figure-the-context-is-a-vector-of-floats-later-in-this-post-we-will-visualize-vectors-in-color-by-assigning-brighter-colors-to-the-cells-with-higher-values">
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img alt="The **context** is a vector of floats. Later in this post we will visualize vectors in color by assigning brighter colors to the cells with higher values." srcset="
+/post/attention/context_hu7a6233c42fac561492b0af65e3f78395_20402_85ccdd37ca6d815d76d50e0b8096cd4f.webp 400w,
+/post/attention/context_hu7a6233c42fac561492b0af65e3f78395_20402_7f20bef431fa1ca8c6bf6e5882d78875.webp 760w,
+/post/attention/context_hu7a6233c42fac561492b0af65e3f78395_20402_1200x1200_fit_q75_h2_lanczos_3.webp 1200w"
+src="https://zhanghanduo.github.io/post/attention/context_hu7a6233c42fac561492b0af65e3f78395_20402_85ccdd37ca6d815d76d50e0b8096cd4f.webp"
+width="716"
+height="252"
+loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;figcaption>
+The &lt;strong>context&lt;/strong> is a vector of floats. Later in this post we will visualize vectors in color by assigning brighter colors to the cells with higher values.
+&lt;/figcaption>&lt;/figure>
+&lt;p>You can set the size of the
+&lt;mark>context&lt;/mark> vector when you set up your model. It is basically the number of hidden units in the
+&lt;mark>encoder&lt;/mark> RNN. These visualizations show a vector of size 4, but in real world applications the
+&lt;mark>context&lt;/mark> vector would be of a size like 256, 512, or 1024.&lt;/p>
+&lt;p>By design, a RNN takes two inputs at each time step: an input (in the case of the encoder, one word from the input sentence), and a hidden state. The word, however, needs to be represented by a vector. To transform a word into a vector, we turn to the class of methods called &amp;ldquo;&lt;a href="https://machinelearningmastery.com/what-are-word-embeddings/" target="_blank" rel="noopener">word embedding&lt;/a>&amp;rdquo; algorithms. These turn words into vector spaces that capture a lot of the meaning/semantic information of the words (e.g. &lt;a href="http://p.migdal.pl/2017/01/06/king-man-woman-queen-why.html" target="_blank" rel="noopener">king - man + woman = queen&lt;/a>).&lt;/p>
+&lt;figure id="figure-we-need-to-turn-the-input-words-into-vectors-before-processing-them-that-transformation-is-done-using-a-word-embedding-algorithm-we-can-use-pre-trained-embeddingshttpahogrammercom20170120the-list-of-pretrained-word-embeddings-or-train-our-own-embedding-on-our-dataset-embedding-vectors-of-size-200-or-300-are-typical-were-showing-a-vector-of-size-four-for-simplicity">
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img alt="We need to turn the input words into vectors before processing them. That transformation is done using a **word embedding** algorithm. We can use [pre-trained embeddings](http://ahogrammer.com/2017/01/20/the-list-of-pretrained-word-embeddings/) or train our own embedding on our dataset. Embedding vectors of size 200 or 300 are typical, we&amp;#39;re showing a vector of size four for simplicity." srcset="
+/post/attention/embedding_hue52ea6887e4ffd78961218df5eff4111_41024_4caff9934379c54892ef9e2a484b83fd.webp 400w,
+/post/attention/embedding_hue52ea6887e4ffd78961218df5eff4111_41024_80b70f6d1ed50e6368f83f94c6f9100d.webp 760w,
+/post/attention/embedding_hue52ea6887e4ffd78961218df5eff4111_41024_1200x1200_fit_q75_h2_lanczos_3.webp 1200w"
+src="https://zhanghanduo.github.io/post/attention/embedding_hue52ea6887e4ffd78961218df5eff4111_41024_4caff9934379c54892ef9e2a484b83fd.webp"
+width="760"
+height="248"
+loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;figcaption>
+We need to turn the input words into vectors before processing them. That transformation is done using a &lt;strong>word embedding&lt;/strong> algorithm. We can use &lt;a href="http://ahogrammer.com/2017/01/20/the-list-of-pretrained-word-embeddings/" target="_blank" rel="noopener">pre-trained embeddings&lt;/a> or train our own embedding on our dataset. Embedding vectors of size 200 or 300 are typical, we&amp;rsquo;re showing a vector of size four for simplicity.
+&lt;/figcaption>&lt;/figure>
+&lt;p>Now that we&amp;rsquo;ve introduced our main vectors/tensors, let&amp;rsquo;s recap the mechanics of an RNN and establish a visual language to describe these models:&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/RNN_1.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>The next RNN step takes the second input vector and hidden state #1 to create the output of that time step. Later in the post, we&amp;rsquo;ll use an animation like this to describe the vectors inside a neural machine translation model.&lt;/p>
+&lt;p>In the following visualization, each pulse for the
+&lt;mark>encoder&lt;/mark> or
+&lt;mark>decoder&lt;/mark> is that RNN processing its inputs and generating an output for that time step. Since the
+&lt;mark>encoder&lt;/mark> and
+&lt;mark>decoder&lt;/mark> are both RNNs, each time step one of the RNNs does some processing, it updates its
+&lt;mark>hidden state&lt;/mark> based on its inputs and previous inputs it has seen.&lt;/p>
+&lt;p>Let&amp;rsquo;s look at the
+&lt;mark>hidden states&lt;/mark> for the
+&lt;mark>encoder&lt;/mark>. Notice how the last
+&lt;mark>hidden state&lt;/mark> is actually the
+&lt;mark>context&lt;/mark> we pass along to the
+&lt;mark>decoder&lt;/mark>.&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/seq2seq_5.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>The
+&lt;mark>decoder&lt;/mark> also maintains a
+&lt;mark>hidden states&lt;/mark> that it passes from one time step to the next. We just didn&amp;rsquo;t visualize it in this graphic because we&amp;rsquo;re concerned with the major parts of the model for now.&lt;/p>
+&lt;p>Let&amp;rsquo;s now look at another way to visualize a sequence-to-sequence model. This animation will make it easier to understand the static graphics that describe these models. This is called an &amp;ldquo;unrolled&amp;rdquo; view where instead of showing the one
+&lt;mark>decoder&lt;/mark>, we show a copy of it for each time step. This way we can look at the inputs and outputs of each time step.&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/seq2seq_6.mp4" type="video/mp4">
+&lt;/video>
+&lt;h2 id="2-attention-mechanism">2. Attention Mechanism&lt;/h2>
+&lt;p>Attention is a generalized pooling method with. The core component in the attention mechanism is the attention layer, or called attention for simplicity. An input of the attention layer is called a query. For a query, attention returns an o bias alignment over inputsutput based on the memory — a set of key-value pairs encoded in the attention layer. To be more specific, assume that the memory contains $n$ key-value pairs, $(k_1, v_1), \cdots, (k_n, v_n)$ with $\mathbf{k}\in{ \mathbb{R}^{d_k}}, \mathbf{v}\in{ \mathbb{R}^{d_v}}$. Given a query $\mathbf{q}\in \mathbb{R}^{d_q}$, the attention layer returns an output $\mathbf{o}\in{ \mathbb{R}^{d_v}} $ with the same shape as the value.&lt;/p>
+&lt;p>Pros of using attention:&lt;/p>
+&lt;ol>
+&lt;li>With attention, Seq2seq does not forget the source input.&lt;/li>
+&lt;li>With attention, the decoder knows where to focus.&lt;/li>
+&lt;/ol>
+&lt;p>The
+&lt;mark>context&lt;/mark> vector turned out to be a bottleneck for these types of models. It made it challenging for the models to deal with long sentences. A solution was proposed in &lt;a href="https://arxiv.org/abs/1409.0473" target="_blank" rel="noopener">Bahdanau et al., 2014&lt;/a> and &lt;a href="https://arxiv.org/abs/1508.04025" target="_blank" rel="noopener">Luong et al., 2015&lt;/a>. These papers introduced and refined a technique called &amp;ldquo;Attention&amp;rdquo;, which highly improved the quality of machine translation systems. Attention allows the model to focus on the relevant parts of the input sequence as needed.&lt;/p>
+&lt;figure id="figure-at-time-step-7-the-attention-mechanism-enables-the-decoder-to-focus-on-the-word-étudiant-student-in-french-before-it-generates-the-english-translation-this-ability-to-amplify-the-signal-from-the-relevant-part-of-the-input-sequence-makes-attention-models-produce-better-results-than-models-without-attention">
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img alt="At time step 7, the attention mechanism enables the **decoder** to focus on the word **étudiant** (*student* in french) before it generates the English translation. This ability to amplify the signal from the relevant part of the input sequence makes attention models produce better results than models without attention." srcset="
+/post/attention/attention_hu3a304cc6d98049bbd17d98bab91c60b0_73300_e78158aec6a1e57573114c9c6faf85a1.webp 400w,
+/post/attention/attention_hu3a304cc6d98049bbd17d98bab91c60b0_73300_3aad1825d2b3ab1c14408a73d81a281c.webp 760w,
+/post/attention/attention_hu3a304cc6d98049bbd17d98bab91c60b0_73300_1200x1200_fit_q75_h2_lanczos_3.webp 1200w"
+src="https://zhanghanduo.github.io/post/attention/attention_hu3a304cc6d98049bbd17d98bab91c60b0_73300_e78158aec6a1e57573114c9c6faf85a1.webp"
+width="760"
+height="209"
+loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;figcaption>
+At time step 7, the attention mechanism enables the &lt;strong>decoder&lt;/strong> to focus on the word &lt;strong>étudiant&lt;/strong> (&lt;em>student&lt;/em> in french) before it generates the English translation. This ability to amplify the signal from the relevant part of the input sequence makes attention models produce better results than models without attention.
+&lt;/figcaption>&lt;/figure>
+&lt;p>Let&amp;rsquo;s continue looking at attention models at this high level of abstraction. An attention model differs from a classic sequence-to-sequence model in two main ways:&lt;/p>
+&lt;p>First, the encoder passes a lot more data to the decoder. Instead of passing the last hidden state of the encoding stage, the encoder passes &lt;em>all&lt;/em> the hidden states to the decoder:&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/seq2seq_7.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>Second, an attention decoder does an extra step before producing its output. In order to focus on the parts of the input that are relevant to this decoding time step, the decoder does the following:&lt;/p>
+&lt;ol>
+&lt;li>Look at the set of encoder
+&lt;mark>hidden states&lt;/mark> it received &amp;ndash; each encoder hidden states is most associated with a certain word in the input sentence&lt;/li>
+&lt;li>Give each
+&lt;mark>hidden states&lt;/mark> a score (let&amp;rsquo;s ignore how the scoring is done for now)&lt;/li>
+&lt;li>Multiply each
+&lt;mark>hidden states&lt;/mark> by its softmaxed score, thus amplifying
+&lt;mark>hidden states&lt;/mark> with high scores, and drowning out
+&lt;mark>hidden states&lt;/mark> with low scores&lt;/li>
+&lt;/ol>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/attention_process.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>This scoring exercise is done at each time step on the
+&lt;mark>decoder&lt;/mark> side.&lt;/p>
+&lt;p>Let us now bring the whole thing together in the following visualization and look at how the attention process works:&lt;/p>
+&lt;ol>
+&lt;li>The attention decoder RNN takes in the embedding of the &amp;lt;END&amp;gt; token, and an initial decoder hidden state.&lt;/li>
+&lt;li>The RNN processes its inputs, producing an output and a new hidden state vector (h4). The output is discarded.&lt;/li>
+&lt;li>Attention Step: We use the encoder hidden states and the h4 vector to calculate a context vector (C4) for this time step.&lt;/li>
+&lt;li>We concatenate h4 and C4 into one vector.&lt;/li>
+&lt;li>We pass this vector through a
+&lt;mark>feedforward neural network&lt;/mark> (one trained jointly with the model).&lt;/li>
+&lt;li>The output of the feedforward neural networks indicates the output word of this time step.&lt;/li>
+&lt;li>Repeat for the next time steps&lt;/li>
+&lt;/ol>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/attention_tensor_dance.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>This is another way to look at which part of the input sentence we&amp;rsquo;re paying attention to at each decoding step:&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/seq2seq_9.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>Note that the model isn&amp;rsquo;t just mindless aligning the first word at the output with the first word from the input. It actually learned from the training phase how to align words in that language pair (French and English in our example). An example for how precise this mechanism can be comes from the attention papers listed above:&lt;/p>
+&lt;figure id="figure-you-can-see-how-the-model-paid-attention-correctly-when-outputing-european-economic-area-in-french-the-order-of-these-words-is-reversed-européenne-économique-zone-as-compared-to-english-every-other-word-in-the-sentence-is-in-similar-order">
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img alt="You can see how the model paid attention correctly when outputing **European Economic Area**. In French, the order of these words is reversed (*européenne économique zone*) as compared to English. Every other word in the sentence is in similar order." srcset="
+/post/attention/attention_sentence_hu9a38ed3c48ed5954b46a7f19ef9a39e3_54758_10bfeee107fcc0b7e4143cc0ba0d88a2.webp 400w,
+/post/attention/attention_sentence_hu9a38ed3c48ed5954b46a7f19ef9a39e3_54758_5650b663e87811862988e2ac79414855.webp 760w,
+/post/attention/attention_sentence_hu9a38ed3c48ed5954b46a7f19ef9a39e3_54758_1200x1200_fit_q75_h2_lanczos_3.webp 1200w"
+src="https://zhanghanduo.github.io/post/attention/attention_sentence_hu9a38ed3c48ed5954b46a7f19ef9a39e3_54758_10bfeee107fcc0b7e4143cc0ba0d88a2.webp"
+width="634"
+height="647"
+loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;figcaption>
+You can see how the model paid attention correctly when outputing &lt;strong>European Economic Area&lt;/strong>. In French, the order of these words is reversed (&lt;em>européenne économique zone&lt;/em>) as compared to English. Every other word in the sentence is in similar order.
+&lt;/figcaption>&lt;/figure>
+&lt;p>You can check TensorFlow&amp;rsquo;s &lt;a href="https://github.com/tensorflow/nmt" target="_blank" rel="noopener">Neural Machine Translation (seq2seq) Tutorial&lt;/a>.&lt;/p></description></item><item><title>Stereo Vision System on UGV</title><link>https://zhanghanduo.github.io/project/ugv/</link><pubDate>Tue, 20 Aug 2019 00:00:00 +0000</pubDate><guid>https://zhanghanduo.github.io/project/ugv/</guid><description>&lt;p>Stereo Vision System on High Speed Unmanned Ground Vehicle&lt;br/>
+Purpose of this project to develop a stereo vision system to explore surroundings for obstacle detection, tracking and mapping; object classification; visual SLAM, road feature detection (like slope detection, curb detection and lane detection). &lt;br/>&lt;br/>&lt;/p>
+&lt;p>Please visit our &lt;a href="https://ugv_stereo.gitlab.io/" target="_blank" rel="noopener">project page&lt;/a> for more details.&lt;/p></description></item><item><title>Multiple Object Tracking With Attention to Appearance, Structure, Motion and Size</title><link>https://zhanghanduo.github.io/publication/multiple_tracking/</link><pubDate>Wed, 07 Aug 2019 17:12:30 +0800</pubDate><guid>https://zhanghanduo.github.io/publication/multiple_tracking/</guid><description/></item><item><title>How to remotely edit your project without having to use VIM</title><link>https://zhanghanduo.github.io/post/remote_edit/</link><pubDate>Tue, 09 Apr 2019 15:20:37 +0800</pubDate><guid>https://zhanghanduo.github.io/post/remote_edit/</guid><description>&lt;p>Remotely editing your work when your server does not have public IP address and you don&amp;rsquo;t want to spend any money is not so easy. Maybe you can use Team viewer or Anydesk or even chrome remote desktop, but there are high latencies. Maybe you can use ngrok to remotely ssh to your server, you have to use vim and you are not familiar with it at all 😧. I tried to use rmate but it is not convinient to edit across different files in a folder.&lt;/p>
+&lt;p>I recently found an hot github repository called &lt;a href="https://github.com/codercom/code-server" target="_blank" rel="noopener">code-server&lt;/a> which is able to run &lt;strong>VS Code&lt;/strong> on a remote server, accessible through the browser. So it suddenly came to my mind that I can remotely edit any code for free as long as I have a linux/macOS environment.&lt;/p>
+&lt;p>Let&amp;rsquo;s consider you understand the basic knowledge of SSH key as you are going to use it. For tutorial about how to generate SSH keys, please refer to &lt;a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys--2" target="_blank" rel="noopener">How to set up SSH keys&lt;/a> and &lt;a href="https://help.github.com/en/articles/connecting-to-github-with-ssh" target="_blank" rel="noopener">connecting to GitHub with SSH&lt;/a>.&lt;/p>
+&lt;p>Firstly you need to see whether your server has a public IP address. If yes (I know this is not common), then things are really easy and you can just follow step 1, 2 and 3; otherwise, directly go to step 0, then step 2 and 3.&lt;/p>
+&lt;h2 id="step-1-ssh-connect">Step 1. SSH connect&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">ssh server_username@IP_address -L 8843:localhost:8843
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The &lt;code>-L 8843:localhost:8843&lt;/code> here is &lt;strong>local port forwarding&lt;/strong> which allows you to access local network resources that aren&amp;rsquo;t exposed to the Internet. The first 8843 is local port, &lt;code>localhost:8843&lt;/code> is the remote &lt;strong>code-server&lt;/strong> default port.&lt;/p>
+&lt;p>To see whether you can successfully links to the server. The prerequisites are 1) you installed openssh-client 2) you have generated SSH key. If not successfully, maybe you don&amp;rsquo;t have a public IP address. Then go to step 0.&lt;/p>
+&lt;h2 id="step-2-download-code-server">Step 2. Download code-server&lt;/h2>
+&lt;p>Open this page on your client browser, find the latest release of &lt;a href="https://github.com/codercom/code-server/releases" target="_blank" rel="noopener">code-server&lt;/a>. Find the binary file for linux and get the downloading address.
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/codeserver/download.png" alt="Download binary file" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>Then in the terminal window ssh connected to the remote server, type:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">wget code-server_downloading_address
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Example:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">wget https://github.com/codercom/code-server/releases/download/1.696-vsc1.33.0/code-server1.696-vsc1.33.0-linux-x64.tar.gz
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">tar -xvzf code-server1.696-vsc1.33.0-linux-x64.tar.gz
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">cd code-server1.696-vsc1.33.0-linux-x64/
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo mv code-server /usr/local/bin/
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Then your &lt;strong>code-server&lt;/strong> will be installed!&lt;/p>
+&lt;h2 id="step-3-running-code-server">Step 3. Running code-server&lt;/h2>
+&lt;p>Go to the folder of your code waiting to be edited and type &lt;code>code-server&lt;/code> in the terminal window ssh connected to remote server.
+Then open your browser and type &lt;code>localhost:8843&lt;/code>, your workspace of VSCode will be revealed to you! The speed is satisfactory to me.&lt;/p>
+&lt;h2 id="step-0-ngrok">Step 0. Ngrok&lt;/h2>
+&lt;p>Some people will use VPS servers or cloud hosting providers like &lt;a href="www.vultr.com">Vultr&lt;/a>, AWS and so on to pay for a public IP address. But here we just need &lt;a href="www.ngrok.com">Ngrok&lt;/a>, a great tool that can create a tunnel from the public Internet to a port on your local machine. You can give this URL to anyone and any place without the need to pay any money!&lt;/p>
+&lt;p>Download ngrok onto your remote server and throw the binary file into /usr/local/bin/. Maybe need to &lt;code>sudo chmod a+x ngrok&lt;/code>.
+Then type:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">ngrok tcp 22 --region ap
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>where &amp;ndash;region refers to your region. There are four region options: us(Ohio), eu(Frankfurt), ap(Singapore), au(Sydney). If you don&amp;rsquo;t select a region, the default one is us, which might be slow if you are in Asia.&lt;/p>
+&lt;p>Then your screen will show something like this:
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/codeserver/ngrok.png" alt="ngrok" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>There is a number after &lt;code>0.tcp.ngrok.io:&lt;/code> &lt;strong>15707&lt;/strong>. You need to remember this port number. Please keep this window on if you want to keep this tunnel open.&lt;/p>
+&lt;p>Then you can ssh to your remote server by copying the command:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">ssh hd@0.tcp.ngrok.io -p15707 -L 8443:localhost:8443
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">#Or your region is ap
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ssh hd@0.tcp.ap.ngrok.io -p15707 -L 8443:localhost:8443
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>GMC: Grid Based Motion Clustering in Dynamic Environment</title><link>https://zhanghanduo.github.io/publication/gmc/</link><pubDate>Thu, 07 Mar 2019 17:12:30 +0800</pubDate><guid>https://zhanghanduo.github.io/publication/gmc/</guid><description/></item><item><title>Slides</title><link>https://zhanghanduo.github.io/slides/example/</link><pubDate>Tue, 05 Feb 2019 00:00:00 +0000</pubDate><guid>https://zhanghanduo.github.io/slides/example/</guid><description>&lt;h1 id="create-slides-in-markdown-with-wowchemy">Create slides in Markdown with Wowchemy&lt;/h1>
+&lt;p>&lt;a href="https://wowchemy.com/" target="_blank" rel="noopener">Wowchemy&lt;/a> | &lt;a href="https://wowchemy.com/docs/content/slides/" target="_blank" rel="noopener">Documentation&lt;/a>&lt;/p>
+&lt;hr>
+&lt;h2 id="features">Features&lt;/h2>
+&lt;ul>
+&lt;li>Efficiently write slides in Markdown&lt;/li>
+&lt;li>3-in-1: Create, Present, and Publish your slides&lt;/li>
+&lt;li>Supports speaker notes&lt;/li>
+&lt;li>Mobile friendly slides&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;h2 id="controls">Controls&lt;/h2>
+&lt;ul>
+&lt;li>Next: &lt;code>Right Arrow&lt;/code> or &lt;code>Space&lt;/code>&lt;/li>
+&lt;li>Previous: &lt;code>Left Arrow&lt;/code>&lt;/li>
+&lt;li>Start: &lt;code>Home&lt;/code>&lt;/li>
+&lt;li>Finish: &lt;code>End&lt;/code>&lt;/li>
+&lt;li>Overview: &lt;code>Esc&lt;/code>&lt;/li>
+&lt;li>Speaker notes: &lt;code>S&lt;/code>&lt;/li>
+&lt;li>Fullscreen: &lt;code>F&lt;/code>&lt;/li>
+&lt;li>Zoom: &lt;code>Alt + Click&lt;/code>&lt;/li>
+&lt;li>&lt;a href="https://revealjs.com/pdf-export/" target="_blank" rel="noopener">PDF Export&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;h2 id="code-highlighting">Code Highlighting&lt;/h2>
+&lt;p>Inline code: &lt;code>variable&lt;/code>&lt;/p>
+&lt;p>Code block:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-python" data-lang="python">&lt;span class="line">&lt;span class="cl">&lt;span class="n">porridge&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="s2">&amp;#34;blueberry&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">if&lt;/span> &lt;span class="n">porridge&lt;/span> &lt;span class="o">==&lt;/span> &lt;span class="s2">&amp;#34;blueberry&amp;#34;&lt;/span>&lt;span class="p">:&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="nb">print&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s2">&amp;#34;Eating...&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="math">Math&lt;/h2>
+&lt;p>In-line math: $x + y = z$&lt;/p>
+&lt;p>Block math:&lt;/p>
+&lt;p>$$
+f\left( x \right) = ;\frac{{2\left( {x + 4} \right)\left( {x - 4} \right)}}{{\left( {x + 4} \right)\left( {x + 1} \right)}}
+$$&lt;/p>
+&lt;hr>
+&lt;h2 id="fragments">Fragments&lt;/h2>
+&lt;p>Make content appear incrementally&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">{{% fragment %}} One {{% /fragment %}}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">{{% fragment %}} **Two** {{% /fragment %}}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">{{% fragment %}} Three {{% /fragment %}}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Press &lt;code>Space&lt;/code> to play!&lt;/p>
+&lt;span class="fragment " >
+One
+&lt;/span>
+&lt;span class="fragment " >
+&lt;strong>Two&lt;/strong>
+&lt;/span>
+&lt;span class="fragment " >
+Three
+&lt;/span>
+&lt;hr>
+&lt;p>A fragment can accept two optional parameters:&lt;/p>
+&lt;ul>
+&lt;li>&lt;code>class&lt;/code>: use a custom style (requires definition in custom CSS)&lt;/li>
+&lt;li>&lt;code>weight&lt;/code>: sets the order in which a fragment appears&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;h2 id="speaker-notes">Speaker Notes&lt;/h2>
+&lt;p>Add speaker notes to your presentation&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">{{% speaker_note %}}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Only the speaker can read these notes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="k">-&lt;/span> Press &lt;span class="sb">`S`&lt;/span> key to view
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> {{% /speaker_note %}}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Press the &lt;code>S&lt;/code> key to view the speaker notes!&lt;/p>
+&lt;aside class="notes">
+&lt;ul>
+&lt;li>Only the speaker can read these notes&lt;/li>
+&lt;li>Press &lt;code>S&lt;/code> key to view&lt;/li>
+&lt;/ul>
+&lt;/aside>
+&lt;hr>
+&lt;h2 id="themes">Themes&lt;/h2>
+&lt;ul>
+&lt;li>black: Black background, white text, blue links (default)&lt;/li>
+&lt;li>white: White background, black text, blue links&lt;/li>
+&lt;li>league: Gray background, white text, blue links&lt;/li>
+&lt;li>beige: Beige background, dark text, brown links&lt;/li>
+&lt;li>sky: Blue background, thin dark text, blue links&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;ul>
+&lt;li>night: Black background, thick white text, orange links&lt;/li>
+&lt;li>serif: Cappuccino background, gray text, brown links&lt;/li>
+&lt;li>simple: White background, black text, blue links&lt;/li>
+&lt;li>solarized: Cream-colored background, dark green text, blue links&lt;/li>
+&lt;/ul>
+&lt;hr>
+&lt;section data-noprocess data-shortcode-slide
+data-background-image="/media/boards.jpg"
+>
+&lt;h2 id="custom-slide">Custom Slide&lt;/h2>
+&lt;p>Customize the slide style and background&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-markdown" data-lang="markdown">&lt;span class="line">&lt;span class="cl">{{&lt;span class="p">&amp;lt;&lt;/span> &lt;span class="nt">slide&lt;/span> &lt;span class="na">background-image&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;/media/boards.jpg&amp;#34;&lt;/span> &lt;span class="p">&amp;gt;&lt;/span>}}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">{{&lt;span class="p">&amp;lt;&lt;/span> &lt;span class="nt">slide&lt;/span> &lt;span class="na">background-color&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;#0000FF&amp;#34;&lt;/span> &lt;span class="p">&amp;gt;&lt;/span>}}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">{{&lt;span class="p">&amp;lt;&lt;/span> &lt;span class="nt">slide&lt;/span> &lt;span class="na">class&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="s">&amp;#34;my-style&amp;#34;&lt;/span> &lt;span class="p">&amp;gt;&lt;/span>}}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h2 id="custom-css-example">Custom CSS Example&lt;/h2>
+&lt;p>Let&amp;rsquo;s make headers navy colored.&lt;/p>
+&lt;p>Create &lt;code>assets/css/reveal_custom.css&lt;/code> with:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-css" data-lang="css">&lt;span class="line">&lt;span class="cl">&lt;span class="p">.&lt;/span>&lt;span class="nc">reveal&lt;/span> &lt;span class="nt">section&lt;/span> &lt;span class="nt">h1&lt;/span>&lt;span class="o">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">.&lt;/span>&lt;span class="nc">reveal&lt;/span> &lt;span class="nt">section&lt;/span> &lt;span class="nt">h2&lt;/span>&lt;span class="o">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">.&lt;/span>&lt;span class="nc">reveal&lt;/span> &lt;span class="nt">section&lt;/span> &lt;span class="nt">h3&lt;/span> &lt;span class="p">{&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="k">color&lt;/span>&lt;span class="p">:&lt;/span> &lt;span class="kc">navy&lt;/span>&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">}&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;hr>
+&lt;h1 id="questions">Questions?&lt;/h1>
+&lt;p>&lt;a href="https://discord.gg/z8wNYzb" target="_blank" rel="noopener">Ask&lt;/a>&lt;/p>
+&lt;p>&lt;a href="https://wowchemy.com/docs/content/slides/" target="_blank" rel="noopener">Documentation&lt;/a>&lt;/p></description></item><item><title>Install new linux environment</title><link>https://zhanghanduo.github.io/post/new_system/</link><pubDate>Mon, 29 Oct 2018 14:46:14 +0800</pubDate><guid>https://zhanghanduo.github.io/post/new_system/</guid><description>&lt;p>When you want to install a brand new Ubuntu 16.04 system. You could try to follow this guidance.&lt;/p>
+&lt;ol>
+&lt;li>
+&lt;p>Open &lt;code>Software &amp;amp; Updates&lt;/code> and choose the fastest source.&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Update the system:&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">sudo sh -c &amp;#39;echo &amp;#34;deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main&amp;#34; &amp;gt; /etc/apt/sources.list.d/ros-latest.list&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo add-apt-repository ppa:graphics-drivers/ppa
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo apt-get update
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo apt-get dist-upgrade
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo apt-get install build-essential git
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="3">
+&lt;li>Install Nvidia driver&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">sudo apt-get install nvidia-396 nvidia-settings
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Under cases you have Intel GPU also, please type:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">sudo prime-select nvidia
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="4">
+&lt;li>Clone the dotfile repository:&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">mkdir softwares &amp;amp;&amp;amp; cd softwares
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">https://github.com/zhanghanduo/dotfiles.git
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">cd dotfiles
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Then follow the &lt;code>readme.md&lt;/code> to install necessary packages and change some settings.
+Then reboot to make some settings valid.&lt;/p>
+&lt;ol start="5">
+&lt;li>Install CUDA:&lt;/li>
+&lt;/ol>
+&lt;p>Type:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">sudo chmod a+x cuda_xxx_linux_64.run
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo ./cuda_xxx_linux_64.run
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>add the following settings to your .zshrc or .bashrc file and &lt;strong>source&lt;/strong> it:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">export PATH=$PATH:/usr/local/cuda/bin
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">export CUDA_HOME=/usr/local/cuda
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="6">
+&lt;li>Install CUDNN&lt;/li>
+&lt;/ol>
+&lt;p>unzip the CUDNN file:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> tar -xzvf cudnn-9.0-linux-x64-v7.tgz
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Then copy and change permissions:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"> sudo cp cuda/include/cudnn.h /usr/local/cuda/include
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sudo cp cuda/lib64/libcudnn* /usr/local/cuda/lib64
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> sudo chmod a+r /usr/local/cuda/include/cudnn.h /usr/local/cuda/lib64/libcudnn*
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="7">
+&lt;li>Install ROS Kinetic&lt;/li>
+&lt;/ol>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">sudo apt-get install ros-kinetic-desktop-full
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo rosdep init
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">rosdep update
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo apt-get install python-rosinstall python-rosinstall-generator python-wstool
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>add the following settings to your .zshrc file and ** source ** it:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">source /opt/ros/kinetic/setup.zsh
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">source ~/.zshrc
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>If you use bash instead of zsh you need to run the following commands to set up your shell:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">source /opt/ros/kinetic/setup.bash
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">source ~/.bashrc
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;ol start="8">
+&lt;li>Instal OpenCV 3.x&lt;/li>
+&lt;/ol>
+&lt;p>8.1 Download
+OpenCV source codes can be downloaded in &lt;a href="https://github.com/opencv/opencv/releases" target="_blank" rel="noopener">opencv github&lt;/a>.
+OpenCV corresponding contrib can be downloaded in &lt;a href="https://github.com/opencv/opencv_contrib/releases" target="_blank" rel="noopener">opencv_contrib github&lt;/a>.&lt;/p>
+&lt;p>8.2 Prerequisites&lt;/p>
+&lt;p>Before you install OpenCV&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">mkdir release &amp;amp;&amp;amp; cd release
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo apt-get build-dep -y opencv
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">(Optional) sudo apt-get install python-dev python-numpy libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>8.3 Cmake&lt;/p>
+&lt;p>For normal configure, just type:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_TBB=ON -D WITH_V4L=ON -D ENABLE_CXX11=ON -D ENABLE_PRECOMPILED_HEADERS=OFF -D CMAKE_CXX_FLAGS=&amp;#39;-std=c++11&amp;#39; ..
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>With contrib, just add: &lt;code>-D OPENCV_EXTRA_MODULES_PATH=/home/hd/softwares/opencv_contrib-3.4.1/modules&lt;/code>.&lt;/p>
+&lt;p>With CUDA, just add: &lt;code>-D WITH_CUDA=ON -D ENABLE_FAST_MATH=1 -D CUDA_FAST_MATH=1 -D WITH_CUBLAS=1 -D CUDA_GENERATION=Auto&lt;/code>.&lt;/p>
+&lt;p>If you encounter some C++ 11 errors during compiling when you install 3.4 or later, just add: &lt;code>-D CMAKE_CXX_FLAGS='-std=c++11' -D CUDA_NVCC_FLAGS='-std=c++11 --expt-relaxed-constexpr'&lt;/code>&lt;/p>
+&lt;p>8.4 Compiling and installing&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">make -j8
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo make install
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>8.5 Environment&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">echo &amp;#39;/usr/local/lib&amp;#39; | sudo tee -a /etc/ld.so.conf.d/opencv.conf
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo ldconfig
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">printf &amp;#39;# OpenCV\nPKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig\nexport PKG_CONFIG_PATH\n&amp;#39; &amp;gt;&amp;gt; ~/.bashrc
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">source ~/.zshrc
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">pkg-config --modversion opencv //check if opencv is installed and its version
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>Price and spec of cloud based GPU</title><link>https://zhanghanduo.github.io/post/gpu_cloud/</link><pubDate>Mon, 29 Oct 2018 14:17:43 +0800</pubDate><guid>https://zhanghanduo.github.io/post/gpu_cloud/</guid><description>&lt;p>I summarized several cloud based GPU services:&lt;/p>
+&lt;table>
+&lt;thead>
+&lt;tr>
+&lt;th>Name of services&lt;/th>
+&lt;th>Specification&lt;/th>
+&lt;th style="text-align:center">Price (US$)&lt;/th>
+&lt;/tr>
+&lt;/thead>
+&lt;tbody>
+&lt;tr>
+&lt;td>AWS P2 instance&lt;/td>
+&lt;td>p2.xLarge&lt;/td>
+&lt;td style="text-align:center">0.9 / hour&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>Azure NC6&lt;/td>
+&lt;td>1xK80&lt;/td>
+&lt;td style="text-align:center">0.9 / hour&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;a href="https://lambdalabs.com/service/gpu-cloud" target="_blank" rel="noopener">Lambda GPU cloud&lt;/a>&lt;/td>
+&lt;td>8x AWS P2 instances&lt;/td>
+&lt;td style="text-align:center">0.90 / GPU/ hour&lt;/td>
+&lt;/tr>
+&lt;tr>
+&lt;td>&lt;a href="https://ts.ntu.edu.sg/sites/hpc/Charges/Home.aspx" target="_blank" rel="noopener">NTU HPCC&lt;/a>&lt;/td>
+&lt;td>2 units of 1-P100 is scheduled to be ready by End of October&lt;/td>
+&lt;td style="text-align:center">0.78 / core/ hour&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table></description></item><item><title>You only look once (YOLO) -- (2)</title><link>https://zhanghanduo.github.io/post/yolov2/</link><pubDate>Mon, 20 Aug 2018 12:58:12 +0800</pubDate><guid>https://zhanghanduo.github.io/post/yolov2/</guid><description>&lt;p>YOLO has higher localization errors and the recall (measure how good to locate all objects) is lower, compared to SSD. YOLOv2 is the second version of the YOLO with the objective of improving the accuracy significantly while making it faster.&lt;/p>
+&lt;p>The backbone network architecture of YOLO v2 is as follows:
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/yolo2_net.jpg" alt="Yolo2 Backbone" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;h2 id="1-accuracy-improvements">1. Accuracy Improvements&lt;/h2>
+&lt;h3 id="batch-normalization">Batch Normalization&lt;/h3>
+&lt;p>Also removes the need of dropouts. mAP increases by 2%.&lt;/p>
+&lt;h3 id="high-resolution-classifier">High-resolution Classifier&lt;/h3>
+&lt;p>To generate predictions with shape of $7\times 7 \times 125$, we replace the final fully connected layers with a $3\times 3$ &lt;code>convolution layer&lt;/code> each outputting 1024 output channels. Then we apply a final $1\times 1$ convolutional layer to convert the $7\times 7 \times 1024$ output into $7\times 7 \times 125$ and retrain it end-to-end. This makes training easier and moves mAP up by 4%.&lt;/p>
+&lt;h3 id="convolution-with-anchor-boxes">Convolution with Anchor Boxes&lt;/h3>
+&lt;p>Early training is susceptible to unstable gradients. Arbitrary guesses on the boundary boxes may result in steep gradient changes.&lt;/p>
+&lt;p>In real life, boudnary boxes are not arbitrary. So the author create 5 &lt;strong>anchor&lt;/strong> boxes with the following shapes.&lt;/p>
+&lt;p>
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/anchor_box.jpeg" alt="5 anchor boxes" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>Instead of directly predicting 5 arbitrary boundary boxes, we predict offsdets to each of the anchor boxes. If we &lt;strong>constrain&lt;/strong> the offset values, we can maintain the diversity of the predictions and have each prediction focusing on specific shape. So the initial training will be more stable.&lt;/p>
+&lt;h3 id="dimension-clusters">Dimension Clusters&lt;/h3>
+&lt;p>In many problem domains, the boundary boxes have strong patterns. For example, in the autonomous driving, the 2 most common boundary boxes will be cars and pedestrians at different distances. To identify the top-K boundary boxes that have the best coverage for the training data, we run K-means clustering on the training data to locate the centroids of the top-K clusters.&lt;/p>
+&lt;p>Since we are dealing with boundary boxes rather than points, we cannot use the regular spatial distance to measure datapoint distances. No surprise, we use IoU.&lt;/p>
+&lt;h3 id="direct-location-prediction">Direct location prediction&lt;/h3>
+&lt;p>We make predictions on the offsets to the anchors. Nevertheless, if it is unconstrained, our guesses will be randomized again. YOLO predicts 5 parameters (tx, ty, tw, th, and to) and applies the sigma function to constraint its possible offset range.&lt;/p>
+&lt;p>
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/yolo2_location_predict.jpeg" alt="Location prediction on anchors" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>With the use of k-means clustering (dimension clusters) and the improvement mentioned in this section, mAP increases 5%.&lt;/p></description></item><item><title>You only look once (YOLO) -- (1)</title><link>https://zhanghanduo.github.io/post/yolo1/</link><pubDate>Mon, 20 Aug 2018 11:39:58 +0800</pubDate><guid>https://zhanghanduo.github.io/post/yolo1/</guid><description>&lt;p>&lt;strong>You Only Look Once (YOLO)&lt;/strong> is an object detection system targeted for real-time processing. There are three versions of YOLO: YOLO, YOLOv2 (and YOLO9000) and YOLOv3. For this article, we mainly focus on YOLO first stage.&lt;/p>
+&lt;h2 id="1-introduction">1. Introduction&lt;/h2>
+&lt;p>The target is to find out the bounding box (rectangular boundary frame) of all the objects in the picture and meanwhile judge the categories of them, where left top coordinate denoted by $(x,y)$, as well as the width and height of the rectangle bounding box by $(w,h)$.
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/intro_yolo_cat.png" alt="Bounding box of a detected cat" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>The challenge here is that we have unknown number of objects, so the output dimension is not fixed.&lt;/p>
+&lt;h2 id="2-grid-cell">2. Grid Cell&lt;/h2>
+&lt;p>The idea of YOLO is to output a fixed number of dimension which is big enough to contain all the objects. We crop the original picture and divide it into an $S\times S$ grid. Each grid cell predicts only &lt;strong>one&lt;/strong> object. For example, the red grid cell tries to predict the &amp;ldquo;dog&amp;rdquo; object whose center falls inside that grid cell.
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/yolo_dog_grid.jpg" alt="Each grid cell only detects one object" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>Each grid cell predicts a fixed number of boundary boxes. In the next example, the yellow grid cell makes two boundary box predictions (blue boxes) to locate where the person is.
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/yolo_rider_demo.jpeg" alt="Each grid cell make a fixed number of boundary box guesses for the object." loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>For each grid cell,&lt;/p>
+&lt;ul>
+&lt;li>it predicts &lt;strong>B&lt;/strong> boundary boxes and each box has a &lt;strong>box confidence score&lt;/strong>,&lt;/li>
+&lt;li>it detects &lt;strong>one&lt;/strong> object only regardless of the number of boxes B,&lt;/li>
+&lt;li>it predicts &lt;strong>C conditional class probabilities&lt;/strong>.&lt;/li>
+&lt;/ul>
+&lt;p>For example we can use $7\times 7$ grids ($S\times S$), 2 boundary boxes (&lt;strong>B&lt;/strong>) with 1 corresponding confidence score and 4 coordinates ($w,h,x,y$), as well as 4 classes (&lt;strong>C&lt;/strong>), which makes up for $1\times 14$ tensor.&lt;/p>
+&lt;p>
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/yolo_grid2.png" alt="tensor dimemsion for 1 gird cell" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;h2 id="3-network-design">3. Network Design&lt;/h2>
+&lt;p>YOLO has 24 convolutional layers followed by 2 fully connected layers (FC). Some convolution layers use $1\times 1$ reduction layers to reduce the depth of feature maps. For the last convolution layer, the output is a tensor with shape $(7,7,1024). Then tensor is flattened, and finally output $7\times 7 \times 30$ parameters (if 20 classes and 2 bboxes predictions per grid cell) through linear regression.
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/yolo1_net.png" alt="YOLO network architecture" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;h2 id="4-loss-fuction">4. Loss Fuction&lt;/h2>
+&lt;p>YOLO uses sum-squared error between predictions (the one with highest IoU) and ground truth to calculate loss. The loss function composes of:&lt;/p>
+&lt;ul>
+&lt;li>the &lt;strong>classification loss&lt;/strong>.&lt;/li>
+&lt;li>the &lt;strong>localization loss&lt;/strong>.&lt;/li>
+&lt;li>the &lt;strong>confidence loss&lt;/strong> (the objectness of the box).&lt;/li>
+&lt;/ul>
+&lt;h3 id="classification-loss">Classification loss&lt;/h3>
+&lt;p>$$
+\sum_{i=0}^{S^2} \mathbf{1}_i^{obj} \cdot{ \sum _{cc\in{classes}} \left( p _{i}(cc) - \hat{p} _i(cc) \right)^2}
+$$
+where $\mathbf{1}_i^{obj} = 1$ if an object appears in cell $i$, otherwise 0;&lt;/p>
+&lt;p>$\hat{p} _i(cc)$ denotes the conditional class probability for class $cc$ in cell $i$.&lt;/p>
+&lt;h3 id="localization-loss">Localization loss&lt;/h3>
+&lt;p>\begin{aligned}
+\lambda _{coord} \sum _{i=0}^{S^2} \sum _{j=0}^{B} \mathbf{1} _{ij}^{obj} \left[ (x _i - \hat{x _i})^2 + (y _i - \hat{y} _i)^2 \right] \
++ \lambda _{coord} \sum _{i=0}^{S^2} \sum _{j=0}^{B} \mathbf{1} _{ij}^{obj} \left[ (\sqrt{w _i} - \sqrt{\hat{w} _i} )^2 + (\sqrt{h _i} - \sqrt{\hat{h} _i} )^2 \right]
+\end{aligned}&lt;/p>
+&lt;p>where $\mathbf{1}_{ij}^{obj} = 1$ if the $j$th boundary box in cell $i$ is responsible for detecting object, otherwise 0;&lt;/p>
+&lt;p>$\lambda_{coord}$ increases the weight for the loss in the boundary box coordinates.&lt;/p>
+&lt;p>YOLO predicts the square root of bounding box width and height in order to differentiate large and small boxes. By setting $\lambda_{coord}$ (default: 5), we put more emphasis on the boundary box accuracy.&lt;/p>
+&lt;h3 id="confidence-loss">Confidence loss&lt;/h3>
+&lt;p>If an object is detected in the box, the confidence loss is:&lt;/p>
+&lt;p>$$
+\sum _{i=0}^{S^2} \sum _{j=0}^{B} \mathbf{1} _{ij}^{obj} \left( C _i - \hat{C} _i \right)^2
+$$&lt;/p>
+&lt;p>where $\mathbf{1}_{ij}^{obj} = 1$ if the $j$th boundary box in cell $i$ is responsible for detecting the object, otherwise 0;&lt;/p>
+&lt;p>$\hat{C} _i$ is the box confidence score of the box $j$ in cell $i$.&lt;/p>
+&lt;p>However, if an object is not detected:&lt;/p>
+&lt;p>$$
+\lambda _{backg} \sum _{i=0}^{S^2} \sum _{j=0}^{B} \mathbf{1} _{ij}^{backg} \left( C _i - \hat{C} _i \right)^2
+$$&lt;/p>
+&lt;p>where $\mathbf{1} _{ij}^{backg} $ is the complement of $ \mathbf{1} _{ij}^{obj}$.&lt;/p>
+&lt;p>$\hat{C} _i$ is the box confidence score of the box $j$ in cell $i$.&lt;/p>
+&lt;p>$\lambda _{backg}$ weights down the loss when detecting background.&lt;/p>
+&lt;p>As most boxes do not contain any objects, we weight the loss down by a factor $\lambda _{backg}$ (default: 0.5) to balance the weight.&lt;/p>
+&lt;h2 id="5-inference-non-maximal-suppression">5. Inference: Non-maximal Suppression&lt;/h2>
+&lt;p>Next, we multiply all these class scores with bounding box confidence and get class scores for different boudning boxes. So output is $7\times 7\times 2 = 98$.
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/yolo_grid3.png" alt="class scores for each bounding box" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>Then we set a threshold value of scores and sort them descendingly. Non-max supressing alogrithm is used to set score to zero for redundant boxes.&lt;/p>
+&lt;p>For example, dog score for bbox1 as 0.5 and bbox 2 as 0.3. We take an Intersection over Union (IOU) of these values and if the value is greater than 0.5, we will set the value for box2 as zero, otherwise continue to the next box.&lt;/p></description></item><item><title>CLion for catkin projects</title><link>https://zhanghanduo.github.io/post/clion/</link><pubDate>Thu, 03 May 2018 10:07:29 +0800</pubDate><guid>https://zhanghanduo.github.io/post/clion/</guid><description>&lt;h2 id="why-use-clion">Why use CLion?&lt;/h2>
+&lt;hr>
+&lt;ul>
+&lt;li>Better indexing and intelligence hints for C++ than Eclipse and QtCreator-desktop.&lt;/li>
+&lt;li>Free for students.&lt;/li>
+&lt;li>Also integrate PyCharm already.&lt;/li>
+&lt;li>Good Git integration (although I am still used to commandline git).&lt;/li>
+&lt;li>I really like the &lt;code>code inspection clang-tidy&lt;/code> function which makes the code style more modern.&lt;/li>
+&lt;/ul>
+&lt;h2 id="initial-set-up">Initial set-up&lt;/h2>
+&lt;hr>
+&lt;p>Highly recommend you to add &lt;code>source &amp;lt;CATKIN_WORKSPACE_DIR&amp;gt;/devel/setup.bash&lt;/code> to the end of &lt;code>~/.bashrc&lt;/code> or &lt;code>~/.zshrc&lt;/code> (Depends you use bash or zsh). So when you type&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="nb">echo&lt;/span> &lt;span class="nv">$ROS_PACKAGE_PATH&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>you can find both &lt;code>&amp;lt;CATKIN_WORKSPACE_DIR&amp;gt;/src&lt;/code> and &lt;code>/opt/ros/&amp;lt;ROS_DIST&amp;gt;/share&lt;/code>. So next time you open any terminal, your cmakelist can find the package of &lt;code>catkin&lt;/code>.&lt;/p>
+&lt;h3 id="method-1-launch-clion-via-terminal">Method 1: Launch CLion via terminal&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">sh &amp;lt;CLION_INSTALL_DIR&amp;gt;/bin/clion.sh
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Recommend you to make alias for this command in &lt;code>~/.bashrc&lt;/code>.&lt;/p>
+&lt;h3 id="method-2-launch-clion-via-app-icon-on-sidebar">Method 2: Launch CLion via app icon on sidebar&lt;/h3>
+&lt;p>Just edit &lt;code>/usr/share/applications/jetbrains-clion.desktop&lt;/code>. If it does not exist, open up Clion and hit &lt;code>Tools &amp;gt; Create Desktop Entry&lt;/code> first. Here I give an example and if you are using &lt;code>zsh&lt;/code>, just change &lt;code>bash&lt;/code> to &lt;code>zsh&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="o">[&lt;/span>Desktop Entry&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Version&lt;/span>&lt;span class="o">=&lt;/span>1.0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Type&lt;/span>&lt;span class="o">=&lt;/span>Application
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Name&lt;/span>&lt;span class="o">=&lt;/span>CLion
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Icon&lt;/span>&lt;span class="o">=&lt;/span>XXX/clion-2017.2.3/bin/clion.svg
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Exec&lt;/span>&lt;span class="o">=&lt;/span>bash -i -c &lt;span class="s2">&amp;#34;XXX/clion-2017.2.3/bin/clion.sh&amp;#34;&lt;/span> %f
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Comment&lt;/span>&lt;span class="o">=&lt;/span>The Drive to Develop
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Categories&lt;/span>&lt;span class="o">=&lt;/span>Development&lt;span class="p">;&lt;/span>IDE&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Terminal&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="nb">false&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">StartupWMClass&lt;/span>&lt;span class="o">=&lt;/span>jetbrains-clion
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="settings">Settings&lt;/h2>
+&lt;p>In CLion, you can set the &lt;code>Toolchain&lt;/code> dialog (including CMake, C++ compiler, gdb) so it can be consistent with your current system-level toolchain.&lt;/p>
+&lt;p>Also you can set the pass any envrionment variables and parameters to CMake in CLion by using the &lt;code>CMake&lt;/code> dialog.&lt;/p>
+&lt;table>
+&lt;tbody>
+&lt;tr>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/8dfc0acb4cc40bf7ded20489f98086d2/toolchain.png" alt="tool chain setting" width="100%">
+&lt;/td>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/c190b9f472836b6993821df80cd27af6/cmake.png" alt="Cmake setting" width="100%">
+&lt;/td>
+&lt;/tr>
+&lt;tr align="center">
+&lt;td>C++ tool chain settings&lt;/td>
+&lt;td>Cmake settings&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>CLion builds your project in &lt;code>cmake-build-debug&lt;/code> by default. If you want to change that, you could easily set:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-CMake" data-lang="CMake">&lt;span class="line">&lt;span class="cl">&lt;span class="nb">set&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">CMAKE_RUNTIME_OUTPUT_DIRECTORY&lt;/span> &lt;span class="s2">&amp;#34;my_dir&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Or change the build output directory in the &lt;code>CMake&lt;/code> dialog as well.&lt;/p>
+&lt;p>In addition, the &lt;code>Run/Debug&lt;/code> Configurations dialog in the right up corner allows you to set program execution arguments, working directory, and environment variables.&lt;/p>
+&lt;table>
+&lt;tbody>
+&lt;tr>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/a51009514844b403224fee6e25f056ea/menu_setting.png" alt="open debug &amp; run setting" width="60%">
+&lt;/td>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/843d191d2e1d8fdef1a15b6aa0b11059/debug_setting.png" alt="modify execution argument" width="100%">
+&lt;/td>
+&lt;/tr>
+&lt;tr align="center">
+&lt;td>open debug &amp; run setting&lt;/td>
+&lt;td>modify execution arguments&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>Now try to build &amp;amp; run your ROS project! I hope this could provide you with better experience on project development.&lt;/p></description></item><item><title>Pooling Layer in CNN (1)</title><link>https://zhanghanduo.github.io/post/pooling/</link><pubDate>Wed, 02 May 2018 10:16:18 +0800</pubDate><guid>https://zhanghanduo.github.io/post/pooling/</guid><description>&lt;p>Today I didn&amp;rsquo;t have the mood to continue my work on map merging of different cameras. So I read the paper from DeepMind of &lt;code>Learned Deformation Stability in Convolutional Neural Networks&lt;/code> recommended by &lt;a href="https://wangchen.online/" target="_blank" rel="noopener">Wang Chen&lt;/a>.&lt;/p>
+&lt;h2 id="1-convolution-operation">1. Convolution Operation&lt;/h2>
+&lt;p>Convolution operation is typically denoted with an asterisk&lt;sup id="fnref:1">&lt;a href="#fn:1" class="footnote-ref" role="doc-noteref">1&lt;/a>&lt;/sup>:
+$$
+s(t)=(x*w)(t)
+$$
+In Convolutional network terminology, the &lt;em>x&lt;/em> is referred to as the &lt;strong>input&lt;/strong>, and the &lt;em>w&lt;/em> as the &lt;strong>kernel&lt;/strong>. The output is sometimes referred to as the &lt;strong>feature map&lt;/strong>.&lt;/p>
+&lt;hr>
+&lt;p>Convolution leverages three ideas that help improve the ML system: &lt;strong>sparse interactions&lt;/strong>, &lt;strong>parameter sharing&lt;/strong> and &lt;strong>equivariant representations&lt;/strong>. Moreover, convolution provides a means for working with inputs of variable size.&lt;/p>
+&lt;h4 id="--sparse-interactions">- Sparse interactions&lt;/h4>
+&lt;p>Also called sparse connectivity or sparse weights, makes the kernel smaller than the input. By detecting small, meaningful features such as edges with kernels (tens or hundreds of pixels), we don&amp;rsquo;t need to process all the input pixels(millions), which means much fewer parameters.&lt;/p>
+&lt;table>
+&lt;tbody>
+&lt;tr>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/4c0bd1f6e4a69d35c8390362fbbca78a/sparse_connectivity.png" alt="Sparse connectivity" width="80%">
+&lt;/td>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/bf6611fd0b7646dcc68358a173be3388/param_sharing.png" alt="Parameter sharing" width="100%">
+&lt;/td>
+&lt;/tr>
+&lt;tr align="center">
+&lt;td>Sparse connectivity&lt;/td>
+&lt;td>Parameter sharing&lt;/td>
+&lt;/td>
+&lt;/tbody>
+&lt;/table>
+&lt;h4 id="--parameter-sharing">- Parameter sharing&lt;/h4>
+&lt;p>Refers to using the same parameter for more than one function in a model, so a network has &lt;strong>tied weights&lt;/strong>. This reduces the storage requirements of the model to &lt;em>k&lt;/em> parameters.&lt;/p>
+&lt;h4 id="--equivariance-to-translation">- Equivariance to translation&lt;/h4>
+&lt;p>But not to other transformations like scale or rotation change.&lt;/p>
+&lt;hr>
+&lt;h2 id="2-pooling">2. Pooling&lt;/h2>
+&lt;p>In all cases, pooling helps to make the representation become approximately invariant to small translations of the input. Pooling over spatial regions produces invariance to translation, but if we pool over the outputs of separately parametrized convolutions, the features can learn which transformations to become invariant to.&lt;/p>
+&lt;p>Because pooling summarizes the responses over a whole neighborhood, it is
+possible to use fewer pooling units than detector units, by reporting summary
+statistics for pooling regions spaced k pixels apart rather than 1 pixel apart.&lt;/p>
+&lt;p>This article tries to analyze the relationship between the pooling layers and deformation stability in CNN based on the paper &lt;code>Learned Deformation Stability in Convolutional Neural Networks&lt;/code>.&lt;/p>
+&lt;p>The paper tries to address the following questions:&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>Does pooling have an effect on the learned deformation stability?&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Is deformation stability achieved in the absence of pooling?&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>How can deformation stability be achieved in the absence of pooling?&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;p>Traditional way of thinking &lt;code>pooling&lt;/code> layer is that it is useful in two reasons:&lt;/p>
+&lt;ol>
+&lt;li>By eliminating non-maximal (for &lt;em>max-pooling&lt;/em>), it reduces computation for upper layers.&lt;/li>
+&lt;li>It porvides a form of translation invariance. Imagine cascading a max-pooling layer with a convolutional layer. There are 8 directions in which one can translate the input image by a single pixel. If max-pooling is done over a $2\times2$ region, 3 out of these 8 possible configurations will produce exactly the same output at the conv layer. For $3\times3$ windows, this jumps to $\frac{5}{8}$.&lt;/li>
+&lt;/ol>
+&lt;p>Then the author first defines the invariance to transformations of an input &lt;em>X&lt;/em> that do not affect the output &lt;em>Y&lt;/em>:&lt;/p>
+&lt;p>$$
+P(Y|\tau(X))=P(Y|X) \forall \tau \in T
+$$&lt;/p>
+&lt;p>Then he defines the measurement of &lt;strong>sensitivity to deformation&lt;/strong> to evaluate this invariance.&lt;/p>
+&lt;p>For a representation &lt;em>r&lt;/em> mapping from input image to some layer of a CNN, the measurement is:&lt;/p>
+&lt;p>$$
+\frac{dcos(r(x), r(\tau(x))}{median(dcos(r(x), r(y)))}
+$$
+where &lt;em>dcos&lt;/em> is the cosine distance. That is we normalize distances by the median distance between randomly selected images from the original dataset.&lt;/p>
+&lt;div class="footnotes" role="doc-endnotes">
+&lt;hr>
+&lt;ol>
+&lt;li id="fn:1">
+&lt;p>Ian Goodfellow, Yoshua Bengio, and Aaron Courville, &lt;strong>Deep Learning&lt;/strong>, 2016.&amp;#160;&lt;a href="#fnref:1" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;/div></description></item><item><title>Heading Reference-Assisted Pose Estimation for Ground Vehicles</title><link>https://zhanghanduo.github.io/publication/ahrs/</link><pubDate>Mon, 30 Apr 2018 13:48:11 +0800</pubDate><guid>https://zhanghanduo.github.io/publication/ahrs/</guid><description/></item><item><title>SVO相关问题</title><link>https://zhanghanduo.github.io/post/questions_slam/</link><pubDate>Tue, 03 Apr 2018 18:09:01 +0800</pubDate><guid>https://zhanghanduo.github.io/post/questions_slam/</guid><description>&lt;ol>
+&lt;li>
+&lt;p>ORBSLAM vs SVO&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>SVO （单目）&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>优点： 速度极快，100多帧，在低端计算机上也能达到实时性。追踪和建图两个线程，追踪线程和ptam或者orbslam很像，也是建立误差项，然后refine和BA，区别就是用的直接法的Image alignment而不是特征点几何位置信息。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>缺点：只是里程计，没有后端优化和回环检测，所以累计误差较大，而且一旦丢了就挂了，没法重定位; 而且在设计的时候针对的是俯视的无人机摄像头，对于平视的摄像机效果很差; 拥有直接法的所有缺点：怕光照变化，怕模糊，怕大运动&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;blockquote>
+&lt;p>svo还有一个不是缺点的缺点，它开源的代码有好多好多坑，作者很多私货故意没有写进开源的代码里面，所以实际用的时候有很多问题，需要自己根据情况改进。&lt;/p>
+&lt;/blockquote>
+&lt;ul>
+&lt;li>OrbSLAM
+&lt;ul>
+&lt;li>
+&lt;p>优点：支持单目，双目，RGBD，是一个完整的系统，包含了里程计，特征点建图BA，回环检测三个独立线程，在i7上大概15～20hz（跟输入图像大小以及参数设置有关），精确度在近年来属于比较高的了。综合能力最强。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>缺点：ORB的提取以及match耗时较大，过快的旋转可能会丢失。而且因为三个线程会给CPU带来较大负担，基本没办法再跑其他大型算法了。对于场景特征点丰富要求高，某些场景如果没什么特征可能就会失败或者不准确。&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;/ul>
+&lt;blockquote>
+&lt;p>能够跟orbslam pk的是比较新的DSO算法，SVO除了速度基本各个方面被吊打。&lt;/p>
+&lt;/blockquote>
+&lt;/li>
+&lt;li>
+&lt;p>Depth acquirement&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;ol>
+&lt;li>先说svo的深度滤波器，属于渐进式的三维重建，不是单纯的求取keypoint的深度，而是要维护候选点seed的深度分布，从未知到粗略到收敛，收敛了才放到地图中共追踪线程使用。实际上收敛较慢，结果严重依赖于准确的位姿估计，因此相比于特征点法的BA没有什么优势。&lt;/li>
+&lt;/ol>
+&lt;/li>
+&lt;li>
+&lt;p>2）再说orbslam的BA，相比来说计算量更大，但是因为是frame-frame以及local map的两次优化，精确度应该高于svo的滤波器。&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;/li>
+&lt;li>
+&lt;p>灰度不变性假设&lt;/p>
+&lt;p>灰度值不变是很强的假设。如果相机是自动曝光的，当它调整曝光参数时，会使得图像整体变亮或变暗。光照变化时也会出现这种情况。特征点法对光照具有一定的容忍性，而直接法由于计算灰度间的差异，整体灰度变化会破坏灰度不变假设，使算法失败。&lt;/p>
+&lt;p>svo不直接取某一个像素，而是4x4的patch，我们对多个点进行最小化光度误差来计算的。所以没有明确的threshold，如果某一两个点光照发生变化还好，少数服从多数。如果发生微小变化了，但是只要选取的特征区域的光照跟其他区域区别很大，也是可以忍受的，毕竟最小化而不强求光照的误差为0。所以说有一定的鲁棒性，虽然跟特征点法没法比。&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>VO静止的时候，会漂吗&lt;/p>
+&lt;p>一般情况下VO一般不会漂的
+如果是VIO的话是有可能的，一般有几个原因:&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;ul>
+&lt;li>
+&lt;ol>
+&lt;li>calibration做的不够准&lt;/li>
+&lt;/ol>
+&lt;/li>
+&lt;li>
+&lt;ol start="2">
+&lt;li>初始化的时候摄像头尽量冲着特征点丰富的地方，并缓慢移动摄像头，充分初始化&lt;/li>
+&lt;/ol>
+&lt;/li>
+&lt;/ul>
+&lt;blockquote>
+&lt;p>IMU如果质量不好也会轻微的漂，但是不严重&lt;/p>
+&lt;/blockquote></description></item><item><title>Ultra-wideband aided fast localization and mapping system</title><link>https://zhanghanduo.github.io/publication/ultra-wideband_localization/</link><pubDate>Sun, 24 Sep 2017 19:36:47 +0800</pubDate><guid>https://zhanghanduo.github.io/publication/ultra-wideband_localization/</guid><description/></item><item><title>A Hybrid Feature Parametrization for Improving Stereo-SLAM Consistency</title><link>https://zhanghanduo.github.io/publication/hybrid/</link><pubDate>Mon, 03 Jul 2017 19:36:47 +0800</pubDate><guid>https://zhanghanduo.github.io/publication/hybrid/</guid><description/></item><item><title>Stereo Vision based Negative Obstacle Detection</title><link>https://zhanghanduo.github.io/publication/stereo_negative/</link><pubDate>Mon, 03 Jul 2017 09:58:16 +0800</pubDate><guid>https://zhanghanduo.github.io/publication/stereo_negative/</guid><description/></item><item><title>Object co-segmentation via weakly supervised data fusion</title><link>https://zhanghanduo.github.io/publication/object-co-segmentation-via-weakly-supervised-data-fusion/</link><pubDate>Fri, 24 Feb 2017 19:36:47 +0800</pubDate><guid>https://zhanghanduo.github.io/publication/object-co-segmentation-via-weakly-supervised-data-fusion/</guid><description/></item></channel></rss>

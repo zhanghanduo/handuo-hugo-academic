@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Deep Learning Basics | Zhang Handuo's Site</title><link>https://zhanghanduo.github.io/category/deep-learning-basics/</link><atom:link href="https://zhanghanduo.github.io/category/deep-learning-basics/index.xml" rel="self" type="application/rss+xml"/><description>Deep Learning Basics</description><generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Mon, 01 Jun 2020 12:58:12 +0800</lastBuildDate><image><url>https://zhanghanduo.github.io/media/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_3.png</url><title>Deep Learning Basics</title><link>https://zhanghanduo.github.io/category/deep-learning-basics/</link></image><item><title>Seq2seq Model with Attention</title><link>https://zhanghanduo.github.io/post/attention/</link><pubDate>Mon, 01 Jun 2020 12:58:12 +0800</pubDate><guid>https://zhanghanduo.github.io/post/attention/</guid><description>&lt;blockquote>
+&lt;p>Digested and reproduced from &lt;a href="https://jalammar.github.io/visualizing-neural-machine-translation-mechanics-of-seq2seq-models-with-attention/">Visualizing A Neural Machine Translation Model&lt;/a> by Jay Alammar.&lt;/p>
+&lt;/blockquote>
+&lt;details class="toc-inpage d-print-none " open>
+&lt;summary class="font-weight-bold">Table of Contents&lt;/summary>
+&lt;nav id="TableOfContents">
+&lt;ul>
+&lt;li>&lt;a href="#1-architecture-of-seq2seq">1. Architecture of Seq2seq&lt;/a>&lt;/li>
+&lt;li>&lt;a href="#2-attention-mechanism">2. Attention Mechanism&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;/nav>
+&lt;/details>
+&lt;p>Sequence-to-sequence models are deep learning models that have achieved a lot of success in tasks like machine translation, text summarization, and image captioning. &lt;a href="https://blog.google/products/translate/found-translation-more-accurate-fluent-sentences-google-translate/" target="_blank" rel="noopener">Google Translate&lt;/a> started using such a model in production in late 2016. These models are explained in the two pioneering papers (&lt;a href="https://papers.nips.cc/paper/5346-sequence-to-sequence-learning-with-neural-networks.pdf" target="_blank" rel="noopener">Sutskever et al., 2014&lt;/a>, &lt;a href="http://emnlp2014.org/papers/pdf/EMNLP2014179.pdf" target="_blank" rel="noopener">Cho et al., 2014&lt;/a>).&lt;/p>
+&lt;p>A sequence-to-sequence model is a model that takes a sequence of items (words, letters, features of an images&amp;hellip;etc) and outputs another sequence of items.&lt;/p>
+&lt;p>In neural machine translation, a sequence is a series of words, processed one after another. The output is, likewise, a series of words:&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/seq2seq_2.mp4" type="video/mp4">
+&lt;/video>
+&lt;h2 id="1-architecture-of-seq2seq">1. Architecture of Seq2seq&lt;/h2>
+&lt;p>The model is composed of an
+&lt;mark>encoder&lt;/mark> and a
+&lt;mark>decoder&lt;/mark>. The
+&lt;mark>encoder&lt;/mark> processes each item in the input sequence and compiles the information into a vector (called the
+&lt;mark>context&lt;/mark> ). After processing the input sequence, the
+&lt;mark>encoder&lt;/mark> sends the
+&lt;mark>context&lt;/mark> over to the
+&lt;mark>decoder&lt;/mark> , which produces the output sequence item by item.&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/seq2seq_3.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>The same applies in the case of machine translation.&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/seq2seq_4.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>RNN (recurrent neural network) is shown as an illustration here to be the model of both
+&lt;mark>encoder&lt;/mark> and
+&lt;mark>decoder&lt;/mark> (Be sure to check out Luis Serrano&amp;rsquo;s &lt;a href="https://www.youtube.com/watch?v=UNmqTiOnRfg" target="_blank" rel="noopener">A friendly introduction to Recurrent Neural Networks&lt;/a> for an intro to RNNs).&lt;/p>
+&lt;figure id="figure-the-context-is-a-vector-of-floats-later-in-this-post-we-will-visualize-vectors-in-color-by-assigning-brighter-colors-to-the-cells-with-higher-values">
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img alt="The **context** is a vector of floats. Later in this post we will visualize vectors in color by assigning brighter colors to the cells with higher values." srcset="
+/post/attention/context_hu7a6233c42fac561492b0af65e3f78395_20402_85ccdd37ca6d815d76d50e0b8096cd4f.webp 400w,
+/post/attention/context_hu7a6233c42fac561492b0af65e3f78395_20402_7f20bef431fa1ca8c6bf6e5882d78875.webp 760w,
+/post/attention/context_hu7a6233c42fac561492b0af65e3f78395_20402_1200x1200_fit_q75_h2_lanczos_3.webp 1200w"
+src="https://zhanghanduo.github.io/post/attention/context_hu7a6233c42fac561492b0af65e3f78395_20402_85ccdd37ca6d815d76d50e0b8096cd4f.webp"
+width="716"
+height="252"
+loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;figcaption>
+The &lt;strong>context&lt;/strong> is a vector of floats. Later in this post we will visualize vectors in color by assigning brighter colors to the cells with higher values.
+&lt;/figcaption>&lt;/figure>
+&lt;p>You can set the size of the
+&lt;mark>context&lt;/mark> vector when you set up your model. It is basically the number of hidden units in the
+&lt;mark>encoder&lt;/mark> RNN. These visualizations show a vector of size 4, but in real world applications the
+&lt;mark>context&lt;/mark> vector would be of a size like 256, 512, or 1024.&lt;/p>
+&lt;p>By design, a RNN takes two inputs at each time step: an input (in the case of the encoder, one word from the input sentence), and a hidden state. The word, however, needs to be represented by a vector. To transform a word into a vector, we turn to the class of methods called &amp;ldquo;&lt;a href="https://machinelearningmastery.com/what-are-word-embeddings/" target="_blank" rel="noopener">word embedding&lt;/a>&amp;rdquo; algorithms. These turn words into vector spaces that capture a lot of the meaning/semantic information of the words (e.g. &lt;a href="http://p.migdal.pl/2017/01/06/king-man-woman-queen-why.html" target="_blank" rel="noopener">king - man + woman = queen&lt;/a>).&lt;/p>
+&lt;figure id="figure-we-need-to-turn-the-input-words-into-vectors-before-processing-them-that-transformation-is-done-using-a-word-embedding-algorithm-we-can-use-pre-trained-embeddingshttpahogrammercom20170120the-list-of-pretrained-word-embeddings-or-train-our-own-embedding-on-our-dataset-embedding-vectors-of-size-200-or-300-are-typical-were-showing-a-vector-of-size-four-for-simplicity">
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img alt="We need to turn the input words into vectors before processing them. That transformation is done using a **word embedding** algorithm. We can use [pre-trained embeddings](http://ahogrammer.com/2017/01/20/the-list-of-pretrained-word-embeddings/) or train our own embedding on our dataset. Embedding vectors of size 200 or 300 are typical, we&amp;#39;re showing a vector of size four for simplicity." srcset="
+/post/attention/embedding_hue52ea6887e4ffd78961218df5eff4111_41024_4caff9934379c54892ef9e2a484b83fd.webp 400w,
+/post/attention/embedding_hue52ea6887e4ffd78961218df5eff4111_41024_80b70f6d1ed50e6368f83f94c6f9100d.webp 760w,
+/post/attention/embedding_hue52ea6887e4ffd78961218df5eff4111_41024_1200x1200_fit_q75_h2_lanczos_3.webp 1200w"
+src="https://zhanghanduo.github.io/post/attention/embedding_hue52ea6887e4ffd78961218df5eff4111_41024_4caff9934379c54892ef9e2a484b83fd.webp"
+width="760"
+height="248"
+loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;figcaption>
+We need to turn the input words into vectors before processing them. That transformation is done using a &lt;strong>word embedding&lt;/strong> algorithm. We can use &lt;a href="http://ahogrammer.com/2017/01/20/the-list-of-pretrained-word-embeddings/" target="_blank" rel="noopener">pre-trained embeddings&lt;/a> or train our own embedding on our dataset. Embedding vectors of size 200 or 300 are typical, we&amp;rsquo;re showing a vector of size four for simplicity.
+&lt;/figcaption>&lt;/figure>
+&lt;p>Now that we&amp;rsquo;ve introduced our main vectors/tensors, let&amp;rsquo;s recap the mechanics of an RNN and establish a visual language to describe these models:&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/RNN_1.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>The next RNN step takes the second input vector and hidden state #1 to create the output of that time step. Later in the post, we&amp;rsquo;ll use an animation like this to describe the vectors inside a neural machine translation model.&lt;/p>
+&lt;p>In the following visualization, each pulse for the
+&lt;mark>encoder&lt;/mark> or
+&lt;mark>decoder&lt;/mark> is that RNN processing its inputs and generating an output for that time step. Since the
+&lt;mark>encoder&lt;/mark> and
+&lt;mark>decoder&lt;/mark> are both RNNs, each time step one of the RNNs does some processing, it updates its
+&lt;mark>hidden state&lt;/mark> based on its inputs and previous inputs it has seen.&lt;/p>
+&lt;p>Let&amp;rsquo;s look at the
+&lt;mark>hidden states&lt;/mark> for the
+&lt;mark>encoder&lt;/mark>. Notice how the last
+&lt;mark>hidden state&lt;/mark> is actually the
+&lt;mark>context&lt;/mark> we pass along to the
+&lt;mark>decoder&lt;/mark>.&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/seq2seq_5.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>The
+&lt;mark>decoder&lt;/mark> also maintains a
+&lt;mark>hidden states&lt;/mark> that it passes from one time step to the next. We just didn&amp;rsquo;t visualize it in this graphic because we&amp;rsquo;re concerned with the major parts of the model for now.&lt;/p>
+&lt;p>Let&amp;rsquo;s now look at another way to visualize a sequence-to-sequence model. This animation will make it easier to understand the static graphics that describe these models. This is called an &amp;ldquo;unrolled&amp;rdquo; view where instead of showing the one
+&lt;mark>decoder&lt;/mark>, we show a copy of it for each time step. This way we can look at the inputs and outputs of each time step.&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/seq2seq_6.mp4" type="video/mp4">
+&lt;/video>
+&lt;h2 id="2-attention-mechanism">2. Attention Mechanism&lt;/h2>
+&lt;p>Attention is a generalized pooling method with. The core component in the attention mechanism is the attention layer, or called attention for simplicity. An input of the attention layer is called a query. For a query, attention returns an o bias alignment over inputsutput based on the memory — a set of key-value pairs encoded in the attention layer. To be more specific, assume that the memory contains $n$ key-value pairs, $(k_1, v_1), \cdots, (k_n, v_n)$ with $\mathbf{k}\in{ \mathbb{R}^{d_k}}, \mathbf{v}\in{ \mathbb{R}^{d_v}}$. Given a query $\mathbf{q}\in \mathbb{R}^{d_q}$, the attention layer returns an output $\mathbf{o}\in{ \mathbb{R}^{d_v}} $ with the same shape as the value.&lt;/p>
+&lt;p>Pros of using attention:&lt;/p>
+&lt;ol>
+&lt;li>With attention, Seq2seq does not forget the source input.&lt;/li>
+&lt;li>With attention, the decoder knows where to focus.&lt;/li>
+&lt;/ol>
+&lt;p>The
+&lt;mark>context&lt;/mark> vector turned out to be a bottleneck for these types of models. It made it challenging for the models to deal with long sentences. A solution was proposed in &lt;a href="https://arxiv.org/abs/1409.0473" target="_blank" rel="noopener">Bahdanau et al., 2014&lt;/a> and &lt;a href="https://arxiv.org/abs/1508.04025" target="_blank" rel="noopener">Luong et al., 2015&lt;/a>. These papers introduced and refined a technique called &amp;ldquo;Attention&amp;rdquo;, which highly improved the quality of machine translation systems. Attention allows the model to focus on the relevant parts of the input sequence as needed.&lt;/p>
+&lt;figure id="figure-at-time-step-7-the-attention-mechanism-enables-the-decoder-to-focus-on-the-word-étudiant-student-in-french-before-it-generates-the-english-translation-this-ability-to-amplify-the-signal-from-the-relevant-part-of-the-input-sequence-makes-attention-models-produce-better-results-than-models-without-attention">
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img alt="At time step 7, the attention mechanism enables the **decoder** to focus on the word **étudiant** (*student* in french) before it generates the English translation. This ability to amplify the signal from the relevant part of the input sequence makes attention models produce better results than models without attention." srcset="
+/post/attention/attention_hu3a304cc6d98049bbd17d98bab91c60b0_73300_e78158aec6a1e57573114c9c6faf85a1.webp 400w,
+/post/attention/attention_hu3a304cc6d98049bbd17d98bab91c60b0_73300_3aad1825d2b3ab1c14408a73d81a281c.webp 760w,
+/post/attention/attention_hu3a304cc6d98049bbd17d98bab91c60b0_73300_1200x1200_fit_q75_h2_lanczos_3.webp 1200w"
+src="https://zhanghanduo.github.io/post/attention/attention_hu3a304cc6d98049bbd17d98bab91c60b0_73300_e78158aec6a1e57573114c9c6faf85a1.webp"
+width="760"
+height="209"
+loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;figcaption>
+At time step 7, the attention mechanism enables the &lt;strong>decoder&lt;/strong> to focus on the word &lt;strong>étudiant&lt;/strong> (&lt;em>student&lt;/em> in french) before it generates the English translation. This ability to amplify the signal from the relevant part of the input sequence makes attention models produce better results than models without attention.
+&lt;/figcaption>&lt;/figure>
+&lt;p>Let&amp;rsquo;s continue looking at attention models at this high level of abstraction. An attention model differs from a classic sequence-to-sequence model in two main ways:&lt;/p>
+&lt;p>First, the encoder passes a lot more data to the decoder. Instead of passing the last hidden state of the encoding stage, the encoder passes &lt;em>all&lt;/em> the hidden states to the decoder:&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/seq2seq_7.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>Second, an attention decoder does an extra step before producing its output. In order to focus on the parts of the input that are relevant to this decoding time step, the decoder does the following:&lt;/p>
+&lt;ol>
+&lt;li>Look at the set of encoder
+&lt;mark>hidden states&lt;/mark> it received &amp;ndash; each encoder hidden states is most associated with a certain word in the input sentence&lt;/li>
+&lt;li>Give each
+&lt;mark>hidden states&lt;/mark> a score (let&amp;rsquo;s ignore how the scoring is done for now)&lt;/li>
+&lt;li>Multiply each
+&lt;mark>hidden states&lt;/mark> by its softmaxed score, thus amplifying
+&lt;mark>hidden states&lt;/mark> with high scores, and drowning out
+&lt;mark>hidden states&lt;/mark> with low scores&lt;/li>
+&lt;/ol>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/attention_process.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>This scoring exercise is done at each time step on the
+&lt;mark>decoder&lt;/mark> side.&lt;/p>
+&lt;p>Let us now bring the whole thing together in the following visualization and look at how the attention process works:&lt;/p>
+&lt;ol>
+&lt;li>The attention decoder RNN takes in the embedding of the &amp;lt;END&amp;gt; token, and an initial decoder hidden state.&lt;/li>
+&lt;li>The RNN processes its inputs, producing an output and a new hidden state vector (h4). The output is discarded.&lt;/li>
+&lt;li>Attention Step: We use the encoder hidden states and the h4 vector to calculate a context vector (C4) for this time step.&lt;/li>
+&lt;li>We concatenate h4 and C4 into one vector.&lt;/li>
+&lt;li>We pass this vector through a
+&lt;mark>feedforward neural network&lt;/mark> (one trained jointly with the model).&lt;/li>
+&lt;li>The output of the feedforward neural networks indicates the output word of this time step.&lt;/li>
+&lt;li>Repeat for the next time steps&lt;/li>
+&lt;/ol>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/attention_tensor_dance.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>This is another way to look at which part of the input sentence we&amp;rsquo;re paying attention to at each decoding step:&lt;/p>
+&lt;video controls >
+&lt;source src="https://zhanghanduo.github.io/post/attention/seq2seq_9.mp4" type="video/mp4">
+&lt;/video>
+&lt;p>Note that the model isn&amp;rsquo;t just mindless aligning the first word at the output with the first word from the input. It actually learned from the training phase how to align words in that language pair (French and English in our example). An example for how precise this mechanism can be comes from the attention papers listed above:&lt;/p>
+&lt;figure id="figure-you-can-see-how-the-model-paid-attention-correctly-when-outputing-european-economic-area-in-french-the-order-of-these-words-is-reversed-européenne-économique-zone-as-compared-to-english-every-other-word-in-the-sentence-is-in-similar-order">
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img alt="You can see how the model paid attention correctly when outputing **European Economic Area**. In French, the order of these words is reversed (*européenne économique zone*) as compared to English. Every other word in the sentence is in similar order." srcset="
+/post/attention/attention_sentence_hu9a38ed3c48ed5954b46a7f19ef9a39e3_54758_10bfeee107fcc0b7e4143cc0ba0d88a2.webp 400w,
+/post/attention/attention_sentence_hu9a38ed3c48ed5954b46a7f19ef9a39e3_54758_5650b663e87811862988e2ac79414855.webp 760w,
+/post/attention/attention_sentence_hu9a38ed3c48ed5954b46a7f19ef9a39e3_54758_1200x1200_fit_q75_h2_lanczos_3.webp 1200w"
+src="https://zhanghanduo.github.io/post/attention/attention_sentence_hu9a38ed3c48ed5954b46a7f19ef9a39e3_54758_10bfeee107fcc0b7e4143cc0ba0d88a2.webp"
+width="634"
+height="647"
+loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;figcaption>
+You can see how the model paid attention correctly when outputing &lt;strong>European Economic Area&lt;/strong>. In French, the order of these words is reversed (&lt;em>européenne économique zone&lt;/em>) as compared to English. Every other word in the sentence is in similar order.
+&lt;/figcaption>&lt;/figure>
+&lt;p>You can check TensorFlow&amp;rsquo;s &lt;a href="https://github.com/tensorflow/nmt" target="_blank" rel="noopener">Neural Machine Translation (seq2seq) Tutorial&lt;/a>.&lt;/p></description></item></channel></rss>

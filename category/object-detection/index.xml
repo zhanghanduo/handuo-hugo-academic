@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Object Detection | Zhang Handuo's Site</title><link>https://zhanghanduo.github.io/category/object-detection/</link><atom:link href="https://zhanghanduo.github.io/category/object-detection/index.xml" rel="self" type="application/rss+xml"/><description>Object Detection</description><generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Mon, 20 Aug 2018 12:58:12 +0800</lastBuildDate><image><url>https://zhanghanduo.github.io/media/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_3.png</url><title>Object Detection</title><link>https://zhanghanduo.github.io/category/object-detection/</link></image><item><title>You only look once (YOLO) -- (2)</title><link>https://zhanghanduo.github.io/post/yolov2/</link><pubDate>Mon, 20 Aug 2018 12:58:12 +0800</pubDate><guid>https://zhanghanduo.github.io/post/yolov2/</guid><description>&lt;p>YOLO has higher localization errors and the recall (measure how good to locate all objects) is lower, compared to SSD. YOLOv2 is the second version of the YOLO with the objective of improving the accuracy significantly while making it faster.&lt;/p>
+&lt;p>The backbone network architecture of YOLO v2 is as follows:
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/yolo2_net.jpg" alt="Yolo2 Backbone" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;h2 id="1-accuracy-improvements">1. Accuracy Improvements&lt;/h2>
+&lt;h3 id="batch-normalization">Batch Normalization&lt;/h3>
+&lt;p>Also removes the need of dropouts. mAP increases by 2%.&lt;/p>
+&lt;h3 id="high-resolution-classifier">High-resolution Classifier&lt;/h3>
+&lt;p>To generate predictions with shape of $7\times 7 \times 125$, we replace the final fully connected layers with a $3\times 3$ &lt;code>convolution layer&lt;/code> each outputting 1024 output channels. Then we apply a final $1\times 1$ convolutional layer to convert the $7\times 7 \times 1024$ output into $7\times 7 \times 125$ and retrain it end-to-end. This makes training easier and moves mAP up by 4%.&lt;/p>
+&lt;h3 id="convolution-with-anchor-boxes">Convolution with Anchor Boxes&lt;/h3>
+&lt;p>Early training is susceptible to unstable gradients. Arbitrary guesses on the boundary boxes may result in steep gradient changes.&lt;/p>
+&lt;p>In real life, boudnary boxes are not arbitrary. So the author create 5 &lt;strong>anchor&lt;/strong> boxes with the following shapes.&lt;/p>
+&lt;p>
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/anchor_box.jpeg" alt="5 anchor boxes" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>Instead of directly predicting 5 arbitrary boundary boxes, we predict offsdets to each of the anchor boxes. If we &lt;strong>constrain&lt;/strong> the offset values, we can maintain the diversity of the predictions and have each prediction focusing on specific shape. So the initial training will be more stable.&lt;/p>
+&lt;h3 id="dimension-clusters">Dimension Clusters&lt;/h3>
+&lt;p>In many problem domains, the boundary boxes have strong patterns. For example, in the autonomous driving, the 2 most common boundary boxes will be cars and pedestrians at different distances. To identify the top-K boundary boxes that have the best coverage for the training data, we run K-means clustering on the training data to locate the centroids of the top-K clusters.&lt;/p>
+&lt;p>Since we are dealing with boundary boxes rather than points, we cannot use the regular spatial distance to measure datapoint distances. No surprise, we use IoU.&lt;/p>
+&lt;h3 id="direct-location-prediction">Direct location prediction&lt;/h3>
+&lt;p>We make predictions on the offsets to the anchors. Nevertheless, if it is unconstrained, our guesses will be randomized again. YOLO predicts 5 parameters (tx, ty, tw, th, and to) and applies the sigma function to constraint its possible offset range.&lt;/p>
+&lt;p>
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/yolo2_location_predict.jpeg" alt="Location prediction on anchors" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>With the use of k-means clustering (dimension clusters) and the improvement mentioned in this section, mAP increases 5%.&lt;/p></description></item><item><title>You only look once (YOLO) -- (1)</title><link>https://zhanghanduo.github.io/post/yolo1/</link><pubDate>Mon, 20 Aug 2018 11:39:58 +0800</pubDate><guid>https://zhanghanduo.github.io/post/yolo1/</guid><description>&lt;p>&lt;strong>You Only Look Once (YOLO)&lt;/strong> is an object detection system targeted for real-time processing. There are three versions of YOLO: YOLO, YOLOv2 (and YOLO9000) and YOLOv3. For this article, we mainly focus on YOLO first stage.&lt;/p>
+&lt;h2 id="1-introduction">1. Introduction&lt;/h2>
+&lt;p>The target is to find out the bounding box (rectangular boundary frame) of all the objects in the picture and meanwhile judge the categories of them, where left top coordinate denoted by $(x,y)$, as well as the width and height of the rectangle bounding box by $(w,h)$.
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/intro_yolo_cat.png" alt="Bounding box of a detected cat" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>The challenge here is that we have unknown number of objects, so the output dimension is not fixed.&lt;/p>
+&lt;h2 id="2-grid-cell">2. Grid Cell&lt;/h2>
+&lt;p>The idea of YOLO is to output a fixed number of dimension which is big enough to contain all the objects. We crop the original picture and divide it into an $S\times S$ grid. Each grid cell predicts only &lt;strong>one&lt;/strong> object. For example, the red grid cell tries to predict the &amp;ldquo;dog&amp;rdquo; object whose center falls inside that grid cell.
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/yolo_dog_grid.jpg" alt="Each grid cell only detects one object" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>Each grid cell predicts a fixed number of boundary boxes. In the next example, the yellow grid cell makes two boundary box predictions (blue boxes) to locate where the person is.
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/yolo_rider_demo.jpeg" alt="Each grid cell make a fixed number of boundary box guesses for the object." loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>For each grid cell,&lt;/p>
+&lt;ul>
+&lt;li>it predicts &lt;strong>B&lt;/strong> boundary boxes and each box has a &lt;strong>box confidence score&lt;/strong>,&lt;/li>
+&lt;li>it detects &lt;strong>one&lt;/strong> object only regardless of the number of boxes B,&lt;/li>
+&lt;li>it predicts &lt;strong>C conditional class probabilities&lt;/strong>.&lt;/li>
+&lt;/ul>
+&lt;p>For example we can use $7\times 7$ grids ($S\times S$), 2 boundary boxes (&lt;strong>B&lt;/strong>) with 1 corresponding confidence score and 4 coordinates ($w,h,x,y$), as well as 4 classes (&lt;strong>C&lt;/strong>), which makes up for $1\times 14$ tensor.&lt;/p>
+&lt;p>
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/yolo_grid2.png" alt="tensor dimemsion for 1 gird cell" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;h2 id="3-network-design">3. Network Design&lt;/h2>
+&lt;p>YOLO has 24 convolutional layers followed by 2 fully connected layers (FC). Some convolution layers use $1\times 1$ reduction layers to reduce the depth of feature maps. For the last convolution layer, the output is a tensor with shape $(7,7,1024). Then tensor is flattened, and finally output $7\times 7 \times 30$ parameters (if 20 classes and 2 bboxes predictions per grid cell) through linear regression.
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/yolo1_net.png" alt="YOLO network architecture" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;h2 id="4-loss-fuction">4. Loss Fuction&lt;/h2>
+&lt;p>YOLO uses sum-squared error between predictions (the one with highest IoU) and ground truth to calculate loss. The loss function composes of:&lt;/p>
+&lt;ul>
+&lt;li>the &lt;strong>classification loss&lt;/strong>.&lt;/li>
+&lt;li>the &lt;strong>localization loss&lt;/strong>.&lt;/li>
+&lt;li>the &lt;strong>confidence loss&lt;/strong> (the objectness of the box).&lt;/li>
+&lt;/ul>
+&lt;h3 id="classification-loss">Classification loss&lt;/h3>
+&lt;p>$$
+\sum_{i=0}^{S^2} \mathbf{1}_i^{obj} \cdot{ \sum _{cc\in{classes}} \left( p _{i}(cc) - \hat{p} _i(cc) \right)^2}
+$$
+where $\mathbf{1}_i^{obj} = 1$ if an object appears in cell $i$, otherwise 0;&lt;/p>
+&lt;p>$\hat{p} _i(cc)$ denotes the conditional class probability for class $cc$ in cell $i$.&lt;/p>
+&lt;h3 id="localization-loss">Localization loss&lt;/h3>
+&lt;p>\begin{aligned}
+\lambda _{coord} \sum _{i=0}^{S^2} \sum _{j=0}^{B} \mathbf{1} _{ij}^{obj} \left[ (x _i - \hat{x _i})^2 + (y _i - \hat{y} _i)^2 \right] \
++ \lambda _{coord} \sum _{i=0}^{S^2} \sum _{j=0}^{B} \mathbf{1} _{ij}^{obj} \left[ (\sqrt{w _i} - \sqrt{\hat{w} _i} )^2 + (\sqrt{h _i} - \sqrt{\hat{h} _i} )^2 \right]
+\end{aligned}&lt;/p>
+&lt;p>where $\mathbf{1}_{ij}^{obj} = 1$ if the $j$th boundary box in cell $i$ is responsible for detecting object, otherwise 0;&lt;/p>
+&lt;p>$\lambda_{coord}$ increases the weight for the loss in the boundary box coordinates.&lt;/p>
+&lt;p>YOLO predicts the square root of bounding box width and height in order to differentiate large and small boxes. By setting $\lambda_{coord}$ (default: 5), we put more emphasis on the boundary box accuracy.&lt;/p>
+&lt;h3 id="confidence-loss">Confidence loss&lt;/h3>
+&lt;p>If an object is detected in the box, the confidence loss is:&lt;/p>
+&lt;p>$$
+\sum _{i=0}^{S^2} \sum _{j=0}^{B} \mathbf{1} _{ij}^{obj} \left( C _i - \hat{C} _i \right)^2
+$$&lt;/p>
+&lt;p>where $\mathbf{1}_{ij}^{obj} = 1$ if the $j$th boundary box in cell $i$ is responsible for detecting the object, otherwise 0;&lt;/p>
+&lt;p>$\hat{C} _i$ is the box confidence score of the box $j$ in cell $i$.&lt;/p>
+&lt;p>However, if an object is not detected:&lt;/p>
+&lt;p>$$
+\lambda _{backg} \sum _{i=0}^{S^2} \sum _{j=0}^{B} \mathbf{1} _{ij}^{backg} \left( C _i - \hat{C} _i \right)^2
+$$&lt;/p>
+&lt;p>where $\mathbf{1} _{ij}^{backg} $ is the complement of $ \mathbf{1} _{ij}^{obj}$.&lt;/p>
+&lt;p>$\hat{C} _i$ is the box confidence score of the box $j$ in cell $i$.&lt;/p>
+&lt;p>$\lambda _{backg}$ weights down the loss when detecting background.&lt;/p>
+&lt;p>As most boxes do not contain any objects, we weight the loss down by a factor $\lambda _{backg}$ (default: 0.5) to balance the weight.&lt;/p>
+&lt;h2 id="5-inference-non-maximal-suppression">5. Inference: Non-maximal Suppression&lt;/h2>
+&lt;p>Next, we multiply all these class scores with bounding box confidence and get class scores for different boudning boxes. So output is $7\times 7\times 2 = 98$.
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/yolo/yolo_grid3.png" alt="class scores for each bounding box" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>Then we set a threshold value of scores and sort them descendingly. Non-max supressing alogrithm is used to set score to zero for redundant boxes.&lt;/p>
+&lt;p>For example, dog score for bbox1 as 0.5 and bbox 2 as 0.3. We take an Intersection over Union (IOU) of these values and if the value is greater than 0.5, we will set the value for box2 as zero, otherwise continue to the next box.&lt;/p></description></item></channel></rss>

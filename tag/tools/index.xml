@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Tools | Zhang Handuo's Site</title><link>https://zhanghanduo.github.io/tag/tools/</link><atom:link href="https://zhanghanduo.github.io/tag/tools/index.xml" rel="self" type="application/rss+xml"/><description>Tools</description><generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Tue, 09 Apr 2019 15:20:37 +0800</lastBuildDate><image><url>https://zhanghanduo.github.io/media/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_3.png</url><title>Tools</title><link>https://zhanghanduo.github.io/tag/tools/</link></image><item><title>How to remotely edit your project without having to use VIM</title><link>https://zhanghanduo.github.io/post/remote_edit/</link><pubDate>Tue, 09 Apr 2019 15:20:37 +0800</pubDate><guid>https://zhanghanduo.github.io/post/remote_edit/</guid><description>&lt;p>Remotely editing your work when your server does not have public IP address and you don&amp;rsquo;t want to spend any money is not so easy. Maybe you can use Team viewer or Anydesk or even chrome remote desktop, but there are high latencies. Maybe you can use ngrok to remotely ssh to your server, you have to use vim and you are not familiar with it at all 😧. I tried to use rmate but it is not convinient to edit across different files in a folder.&lt;/p>
+&lt;p>I recently found an hot github repository called &lt;a href="https://github.com/codercom/code-server" target="_blank" rel="noopener">code-server&lt;/a> which is able to run &lt;strong>VS Code&lt;/strong> on a remote server, accessible through the browser. So it suddenly came to my mind that I can remotely edit any code for free as long as I have a linux/macOS environment.&lt;/p>
+&lt;p>Let&amp;rsquo;s consider you understand the basic knowledge of SSH key as you are going to use it. For tutorial about how to generate SSH keys, please refer to &lt;a href="https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys--2" target="_blank" rel="noopener">How to set up SSH keys&lt;/a> and &lt;a href="https://help.github.com/en/articles/connecting-to-github-with-ssh" target="_blank" rel="noopener">connecting to GitHub with SSH&lt;/a>.&lt;/p>
+&lt;p>Firstly you need to see whether your server has a public IP address. If yes (I know this is not common), then things are really easy and you can just follow step 1, 2 and 3; otherwise, directly go to step 0, then step 2 and 3.&lt;/p>
+&lt;h2 id="step-1-ssh-connect">Step 1. SSH connect&lt;/h2>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">ssh server_username@IP_address -L 8843:localhost:8843
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>The &lt;code>-L 8843:localhost:8843&lt;/code> here is &lt;strong>local port forwarding&lt;/strong> which allows you to access local network resources that aren&amp;rsquo;t exposed to the Internet. The first 8843 is local port, &lt;code>localhost:8843&lt;/code> is the remote &lt;strong>code-server&lt;/strong> default port.&lt;/p>
+&lt;p>To see whether you can successfully links to the server. The prerequisites are 1) you installed openssh-client 2) you have generated SSH key. If not successfully, maybe you don&amp;rsquo;t have a public IP address. Then go to step 0.&lt;/p>
+&lt;h2 id="step-2-download-code-server">Step 2. Download code-server&lt;/h2>
+&lt;p>Open this page on your client browser, find the latest release of &lt;a href="https://github.com/codercom/code-server/releases" target="_blank" rel="noopener">code-server&lt;/a>. Find the binary file for linux and get the downloading address.
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/codeserver/download.png" alt="Download binary file" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>Then in the terminal window ssh connected to the remote server, type:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">wget code-server_downloading_address
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Example:
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">wget https://github.com/codercom/code-server/releases/download/1.696-vsc1.33.0/code-server1.696-vsc1.33.0-linux-x64.tar.gz
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">tar -xvzf code-server1.696-vsc1.33.0-linux-x64.tar.gz
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">cd code-server1.696-vsc1.33.0-linux-x64/
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">sudo mv code-server /usr/local/bin/
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Then your &lt;strong>code-server&lt;/strong> will be installed!&lt;/p>
+&lt;h2 id="step-3-running-code-server">Step 3. Running code-server&lt;/h2>
+&lt;p>Go to the folder of your code waiting to be edited and type &lt;code>code-server&lt;/code> in the terminal window ssh connected to remote server.
+Then open your browser and type &lt;code>localhost:8843&lt;/code>, your workspace of VSCode will be revealed to you! The speed is satisfactory to me.&lt;/p>
+&lt;h2 id="step-0-ngrok">Step 0. Ngrok&lt;/h2>
+&lt;p>Some people will use VPS servers or cloud hosting providers like &lt;a href="www.vultr.com">Vultr&lt;/a>, AWS and so on to pay for a public IP address. But here we just need &lt;a href="www.ngrok.com">Ngrok&lt;/a>, a great tool that can create a tunnel from the public Internet to a port on your local machine. You can give this URL to anyone and any place without the need to pay any money!&lt;/p>
+&lt;p>Download ngrok onto your remote server and throw the binary file into /usr/local/bin/. Maybe need to &lt;code>sudo chmod a+x ngrok&lt;/code>.
+Then type:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">ngrok tcp 22 --region ap
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>where &amp;ndash;region refers to your region. There are four region options: us(Ohio), eu(Frankfurt), ap(Singapore), au(Sydney). If you don&amp;rsquo;t select a region, the default one is us, which might be slow if you are in Asia.&lt;/p>
+&lt;p>Then your screen will show something like this:
+&lt;figure >
+&lt;div class="d-flex justify-content-center">
+&lt;div class="w-100" >&lt;img src="https://zhanghanduo.github.io/img/codeserver/ngrok.png" alt="ngrok" loading="lazy" data-zoomable />&lt;/div>
+&lt;/div>&lt;/figure>
+&lt;/p>
+&lt;p>There is a number after &lt;code>0.tcp.ngrok.io:&lt;/code> &lt;strong>15707&lt;/strong>. You need to remember this port number. Please keep this window on if you want to keep this tunnel open.&lt;/p>
+&lt;p>Then you can ssh to your remote server by copying the command:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">ssh hd@0.tcp.ngrok.io -p15707 -L 8443:localhost:8443
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">#Or your region is ap
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ssh hd@0.tcp.ap.ngrok.io -p15707 -L 8443:localhost:8443
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div></description></item><item><title>CLion for catkin projects</title><link>https://zhanghanduo.github.io/post/clion/</link><pubDate>Thu, 03 May 2018 10:07:29 +0800</pubDate><guid>https://zhanghanduo.github.io/post/clion/</guid><description>&lt;h2 id="why-use-clion">Why use CLion?&lt;/h2>
+&lt;hr>
+&lt;ul>
+&lt;li>Better indexing and intelligence hints for C++ than Eclipse and QtCreator-desktop.&lt;/li>
+&lt;li>Free for students.&lt;/li>
+&lt;li>Also integrate PyCharm already.&lt;/li>
+&lt;li>Good Git integration (although I am still used to commandline git).&lt;/li>
+&lt;li>I really like the &lt;code>code inspection clang-tidy&lt;/code> function which makes the code style more modern.&lt;/li>
+&lt;/ul>
+&lt;h2 id="initial-set-up">Initial set-up&lt;/h2>
+&lt;hr>
+&lt;p>Highly recommend you to add &lt;code>source &amp;lt;CATKIN_WORKSPACE_DIR&amp;gt;/devel/setup.bash&lt;/code> to the end of &lt;code>~/.bashrc&lt;/code> or &lt;code>~/.zshrc&lt;/code> (Depends you use bash or zsh). So when you type&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="nb">echo&lt;/span> &lt;span class="nv">$ROS_PACKAGE_PATH&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>you can find both &lt;code>&amp;lt;CATKIN_WORKSPACE_DIR&amp;gt;/src&lt;/code> and &lt;code>/opt/ros/&amp;lt;ROS_DIST&amp;gt;/share&lt;/code>. So next time you open any terminal, your cmakelist can find the package of &lt;code>catkin&lt;/code>.&lt;/p>
+&lt;h3 id="method-1-launch-clion-via-terminal">Method 1: Launch CLion via terminal&lt;/h3>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">sh &amp;lt;CLION_INSTALL_DIR&amp;gt;/bin/clion.sh
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Recommend you to make alias for this command in &lt;code>~/.bashrc&lt;/code>.&lt;/p>
+&lt;h3 id="method-2-launch-clion-via-app-icon-on-sidebar">Method 2: Launch CLion via app icon on sidebar&lt;/h3>
+&lt;p>Just edit &lt;code>/usr/share/applications/jetbrains-clion.desktop&lt;/code>. If it does not exist, open up Clion and hit &lt;code>Tools &amp;gt; Create Desktop Entry&lt;/code> first. Here I give an example and if you are using &lt;code>zsh&lt;/code>, just change &lt;code>bash&lt;/code> to &lt;code>zsh&lt;/code>.&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-bash" data-lang="bash">&lt;span class="line">&lt;span class="cl">&lt;span class="o">[&lt;/span>Desktop Entry&lt;span class="o">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Version&lt;/span>&lt;span class="o">=&lt;/span>1.0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Type&lt;/span>&lt;span class="o">=&lt;/span>Application
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Name&lt;/span>&lt;span class="o">=&lt;/span>CLion
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Icon&lt;/span>&lt;span class="o">=&lt;/span>XXX/clion-2017.2.3/bin/clion.svg
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Exec&lt;/span>&lt;span class="o">=&lt;/span>bash -i -c &lt;span class="s2">&amp;#34;XXX/clion-2017.2.3/bin/clion.sh&amp;#34;&lt;/span> %f
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Comment&lt;/span>&lt;span class="o">=&lt;/span>The Drive to Develop
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Categories&lt;/span>&lt;span class="o">=&lt;/span>Development&lt;span class="p">;&lt;/span>IDE&lt;span class="p">;&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">Terminal&lt;/span>&lt;span class="o">=&lt;/span>&lt;span class="nb">false&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="nv">StartupWMClass&lt;/span>&lt;span class="o">=&lt;/span>jetbrains-clion
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;h2 id="settings">Settings&lt;/h2>
+&lt;p>In CLion, you can set the &lt;code>Toolchain&lt;/code> dialog (including CMake, C++ compiler, gdb) so it can be consistent with your current system-level toolchain.&lt;/p>
+&lt;p>Also you can set the pass any envrionment variables and parameters to CMake in CLion by using the &lt;code>CMake&lt;/code> dialog.&lt;/p>
+&lt;table>
+&lt;tbody>
+&lt;tr>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/8dfc0acb4cc40bf7ded20489f98086d2/toolchain.png" alt="tool chain setting" width="100%">
+&lt;/td>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/c190b9f472836b6993821df80cd27af6/cmake.png" alt="Cmake setting" width="100%">
+&lt;/td>
+&lt;/tr>
+&lt;tr align="center">
+&lt;td>C++ tool chain settings&lt;/td>
+&lt;td>Cmake settings&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>CLion builds your project in &lt;code>cmake-build-debug&lt;/code> by default. If you want to change that, you could easily set:&lt;/p>
+&lt;div class="highlight">&lt;pre tabindex="0" class="chroma">&lt;code class="language-CMake" data-lang="CMake">&lt;span class="line">&lt;span class="cl">&lt;span class="nb">set&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="s">CMAKE_RUNTIME_OUTPUT_DIRECTORY&lt;/span> &lt;span class="s2">&amp;#34;my_dir&amp;#34;&lt;/span>&lt;span class="p">)&lt;/span>&lt;span class="err">
+&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>&lt;p>Or change the build output directory in the &lt;code>CMake&lt;/code> dialog as well.&lt;/p>
+&lt;p>In addition, the &lt;code>Run/Debug&lt;/code> Configurations dialog in the right up corner allows you to set program execution arguments, working directory, and environment variables.&lt;/p>
+&lt;table>
+&lt;tbody>
+&lt;tr>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/a51009514844b403224fee6e25f056ea/menu_setting.png" alt="open debug &amp; run setting" width="60%">
+&lt;/td>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/843d191d2e1d8fdef1a15b6aa0b11059/debug_setting.png" alt="modify execution argument" width="100%">
+&lt;/td>
+&lt;/tr>
+&lt;tr align="center">
+&lt;td>open debug &amp; run setting&lt;/td>
+&lt;td>modify execution arguments&lt;/td>
+&lt;/tr>
+&lt;/tbody>
+&lt;/table>
+&lt;p>Now try to build &amp;amp; run your ROS project! I hope this could provide you with better experience on project development.&lt;/p></description></item></channel></rss>

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Network architecture | Zhang Handuo's Site</title><link>https://zhanghanduo.github.io/category/network-architecture/</link><atom:link href="https://zhanghanduo.github.io/category/network-architecture/index.xml" rel="self" type="application/rss+xml"/><description>Network architecture</description><generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Wed, 02 May 2018 10:16:18 +0800</lastBuildDate><image><url>https://zhanghanduo.github.io/media/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_3.png</url><title>Network architecture</title><link>https://zhanghanduo.github.io/category/network-architecture/</link></image><item><title>Pooling Layer in CNN (1)</title><link>https://zhanghanduo.github.io/post/pooling/</link><pubDate>Wed, 02 May 2018 10:16:18 +0800</pubDate><guid>https://zhanghanduo.github.io/post/pooling/</guid><description>&lt;p>Today I didn&amp;rsquo;t have the mood to continue my work on map merging of different cameras. So I read the paper from DeepMind of &lt;code>Learned Deformation Stability in Convolutional Neural Networks&lt;/code> recommended by &lt;a href="https://wangchen.online/" target="_blank" rel="noopener">Wang Chen&lt;/a>.&lt;/p>
+&lt;h2 id="1-convolution-operation">1. Convolution Operation&lt;/h2>
+&lt;p>Convolution operation is typically denoted with an asterisk&lt;sup id="fnref:1">&lt;a href="#fn:1" class="footnote-ref" role="doc-noteref">1&lt;/a>&lt;/sup>:
+$$
+s(t)=(x*w)(t)
+$$
+In Convolutional network terminology, the &lt;em>x&lt;/em> is referred to as the &lt;strong>input&lt;/strong>, and the &lt;em>w&lt;/em> as the &lt;strong>kernel&lt;/strong>. The output is sometimes referred to as the &lt;strong>feature map&lt;/strong>.&lt;/p>
+&lt;hr>
+&lt;p>Convolution leverages three ideas that help improve the ML system: &lt;strong>sparse interactions&lt;/strong>, &lt;strong>parameter sharing&lt;/strong> and &lt;strong>equivariant representations&lt;/strong>. Moreover, convolution provides a means for working with inputs of variable size.&lt;/p>
+&lt;h4 id="--sparse-interactions">- Sparse interactions&lt;/h4>
+&lt;p>Also called sparse connectivity or sparse weights, makes the kernel smaller than the input. By detecting small, meaningful features such as edges with kernels (tens or hundreds of pixels), we don&amp;rsquo;t need to process all the input pixels(millions), which means much fewer parameters.&lt;/p>
+&lt;table>
+&lt;tbody>
+&lt;tr>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/4c0bd1f6e4a69d35c8390362fbbca78a/sparse_connectivity.png" alt="Sparse connectivity" width="80%">
+&lt;/td>
+&lt;td>
+&lt;img src="https://gitlab.com/handuo/msc_storage/uploads/bf6611fd0b7646dcc68358a173be3388/param_sharing.png" alt="Parameter sharing" width="100%">
+&lt;/td>
+&lt;/tr>
+&lt;tr align="center">
+&lt;td>Sparse connectivity&lt;/td>
+&lt;td>Parameter sharing&lt;/td>
+&lt;/td>
+&lt;/tbody>
+&lt;/table>
+&lt;h4 id="--parameter-sharing">- Parameter sharing&lt;/h4>
+&lt;p>Refers to using the same parameter for more than one function in a model, so a network has &lt;strong>tied weights&lt;/strong>. This reduces the storage requirements of the model to &lt;em>k&lt;/em> parameters.&lt;/p>
+&lt;h4 id="--equivariance-to-translation">- Equivariance to translation&lt;/h4>
+&lt;p>But not to other transformations like scale or rotation change.&lt;/p>
+&lt;hr>
+&lt;h2 id="2-pooling">2. Pooling&lt;/h2>
+&lt;p>In all cases, pooling helps to make the representation become approximately invariant to small translations of the input. Pooling over spatial regions produces invariance to translation, but if we pool over the outputs of separately parametrized convolutions, the features can learn which transformations to become invariant to.&lt;/p>
+&lt;p>Because pooling summarizes the responses over a whole neighborhood, it is
+possible to use fewer pooling units than detector units, by reporting summary
+statistics for pooling regions spaced k pixels apart rather than 1 pixel apart.&lt;/p>
+&lt;p>This article tries to analyze the relationship between the pooling layers and deformation stability in CNN based on the paper &lt;code>Learned Deformation Stability in Convolutional Neural Networks&lt;/code>.&lt;/p>
+&lt;p>The paper tries to address the following questions:&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>Does pooling have an effect on the learned deformation stability?&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Is deformation stability achieved in the absence of pooling?&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>How can deformation stability be achieved in the absence of pooling?&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;p>Traditional way of thinking &lt;code>pooling&lt;/code> layer is that it is useful in two reasons:&lt;/p>
+&lt;ol>
+&lt;li>By eliminating non-maximal (for &lt;em>max-pooling&lt;/em>), it reduces computation for upper layers.&lt;/li>
+&lt;li>It porvides a form of translation invariance. Imagine cascading a max-pooling layer with a convolutional layer. There are 8 directions in which one can translate the input image by a single pixel. If max-pooling is done over a $2\times2$ region, 3 out of these 8 possible configurations will produce exactly the same output at the conv layer. For $3\times3$ windows, this jumps to $\frac{5}{8}$.&lt;/li>
+&lt;/ol>
+&lt;p>Then the author first defines the invariance to transformations of an input &lt;em>X&lt;/em> that do not affect the output &lt;em>Y&lt;/em>:&lt;/p>
+&lt;p>$$
+P(Y|\tau(X))=P(Y|X) \forall \tau \in T
+$$&lt;/p>
+&lt;p>Then he defines the measurement of &lt;strong>sensitivity to deformation&lt;/strong> to evaluate this invariance.&lt;/p>
+&lt;p>For a representation &lt;em>r&lt;/em> mapping from input image to some layer of a CNN, the measurement is:&lt;/p>
+&lt;p>$$
+\frac{dcos(r(x), r(\tau(x))}{median(dcos(r(x), r(y)))}
+$$
+where &lt;em>dcos&lt;/em> is the cosine distance. That is we normalize distances by the median distance between randomly selected images from the original dataset.&lt;/p>
+&lt;div class="footnotes" role="doc-endnotes">
+&lt;hr>
+&lt;ol>
+&lt;li id="fn:1">
+&lt;p>Ian Goodfellow, Yoshua Bengio, and Aaron Courville, &lt;strong>Deep Learning&lt;/strong>, 2016.&amp;#160;&lt;a href="#fnref:1" class="footnote-backref" role="doc-backlink">&amp;#x21a9;&amp;#xfe0e;&lt;/a>&lt;/p>
+&lt;/li>
+&lt;/ol>
+&lt;/div></description></item></channel></rss>
