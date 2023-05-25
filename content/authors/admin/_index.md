@@ -1,84 +1,82 @@
 ---
 # Display name
-title: Alice Wu 吳恩達
+name: Zhang Handuo
 
-# Full name (for SEO)
-first_name: Alice
-last_name: Wu
-
-# Status emoji
-status:
-  icon: ☕️
+# Username (this should match the folder name)
+authors:
+- admin
 
 # Is this the primary user of the site?
 superuser: true
 
-# Role/position/tagline
-role: Professor of Artificial Intelligence
+# Role/position
+role: AI Scientist
 
-# Organizations/Affiliations to show in About widget
+# Organizations/Affiliations
 organizations:
-  - name: Stanford University
-    url: https://www.stanford.edu/
+- name: Mind Pointeye Ptd Ltd
+  url: "https://www.mindpointeye.com"
 
 # Short bio (displayed in user profile at end of posts)
-bio: My research interests include distributed robotics, mobile computing and programmable matter.
+bio: My research interests include AI aided robotics vision, anomaly activity detection, and visual SLAM.
 
-# Interests to show in About widget
 interests:
-  - Artificial Intelligence
-  - Computational Linguistics
-  - Information Retrieval
+- 3D Robot Vision (Object Detection and Tracking）
+- Deep Feature Localization and Description
+- Visual SLAM and Navigation
 
-# Education to show in About widget
 education:
   courses:
-    - course: PhD in Artificial Intelligence
-      institution: Stanford University
-      year: 2012
-    - course: MEng in Artificial Intelligence
-      institution: Massachusetts Institute of Technology
-      year: 2009
-    - course: BSc in Artificial Intelligence
-      institution: Massachusetts Institute of Technology
-      year: 2008
+  - course: PhD in 3D Robot Vision
+    institution: Nanyang Technological University
+    year: 2016
+  - course: MEng in Pattern Recognition
+    institution: Northeastern University
+    year: 2011
+  - course: BSc in Automation
+    institution: Northeastern University
+    year: 2007
 
 # Social/Academic Networking
-# For available icons, see: https://wowchemy.com/docs/getting-started/page-builder/#icons
+# For available icons, see: https://sourcethemes.com/academic/docs/widgets/#icons
 #   For an email link, use "fas" icon pack, "envelope" icon, and a link in the
-#   form "mailto:your-email@example.com" or "/#contact" for contact widget.
+#   form "mailto:your-email@example.com" or "#contact" for contact widget.
 social:
-  - icon: envelope
-    icon_pack: fas
-    link: '/#contact'
-  - icon: twitter
-    icon_pack: fab
-    link: https://twitter.com/GeorgeCushen
-    label: Follow me on Twitter
-    display:
-      header: true
-  - icon: graduation-cap # Alternatively, use `google-scholar` icon from `ai` icon pack
-    icon_pack: fas
-    link: https://scholar.google.co.uk/citations?user=sIwtMXoAAAAJ
-  - icon: github
-    icon_pack: fab
-    link: https://github.com/gcushen
-  - icon: linkedin
-    icon_pack: fab
-    link: https://www.linkedin.com/
-  # Link to a PDF of your resume/CV.
-  # To use: copy your resume to `static/uploads/resume.pdf`, enable `ai` icons in `params.yaml`,
-  # and uncomment the lines below.
-  - icon: cv
-    icon_pack: ai
-    link: uploads/resume.pdf
+- icon: envelope
+  icon_pack: fas
+  link: 'mailto:zhanghanduo@gmail.com'  # For a direct email link, use "mailto:test@example.org".
+- icon: weixin
+  icon_pack: fab
+  link: weixin://dl/chat?{handuo8997}
+# - icon: twitter
+#   icon_pack: fab
+#   link: https://twitter.com/christlurker
+- icon: telegram
+  icon_pack: fab
+  link: https://t.me/christlurker
+- icon: google-scholar
+  icon_pack: ai
+  link: https://scholar.google.com.sg/citations?user=je6o_J4AAAAJ&hl=en
+- icon: github
+  icon_pack: fab
+  link: https://github.com/zhanghanduo
+# Link to a PDF of your resume/CV from the About widget.
+# To enable, copy your resume/CV to `static/files/cv.pdf` and uncomment the lines below.  
+- icon: cv
+  icon_pack: ai
+  link: uploads/resume.pdf
 
 # Enter email to display Gravatar (if Gravatar enabled in Config)
-email: ''
-
-# Highlight the author in author lists? (true/false)
-highlight_name: true
+email: "zhanghanduo@gmail.com"
+  
+# Organizational groups that you belong to (for People widget)
+#   Set this to `[]` or comment out if you are not using People widget.  
+user_groups:
+- Researchers
+- Visitors
 ---
 
-Alice Wu is a professor of artificial intelligence at the Stanford AI Lab. Her research interests include distributed robotics, mobile computing and programmable matter. She leads the Robotic Neurobiology group, which develops self-reconfiguring robots, systems of self-organizing robots, and mobile sensor networks.
-{style="text-align: justify;"}
+<!-- Zhang Handuo is currently a Ph.D student in Nanyang Technological University. His research interest is localization and machine learning on robot vision. Currently he is involved in a stereo vison based project for unmanned ground vehicle. -->
+
+Dr. Zhang Handuo is currently the AI Scientist at Mind Pointeye leading a group of 7 engineers. 
+My research interests include Robot Perception and computer Vision. Currently I am working on human-level spatial awareness and reasoning with the aid of AI. 
