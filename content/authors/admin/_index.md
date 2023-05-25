@@ -29,13 +29,13 @@ education:
   courses:
   - course: PhD in 3D Robot Vision
     institution: Nanyang Technological University
-    year: 2016
+    year: 2021
   - course: MEng in Pattern Recognition
     institution: Northeastern University
-    year: 2011
+    year: 2013
   - course: BSc in Automation
     institution: Northeastern University
-    year: 2007
+    year: 2011
 
 # Social/Academic Networking
 # For available icons, see: https://sourcethemes.com/academic/docs/widgets/#icons
